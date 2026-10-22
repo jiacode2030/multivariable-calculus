@@ -82,6 +82,26 @@ const url = "file://" + path.resolve(__dirname, "..", "index.html");
     for (const t of [0.3, 1.2, 2.5]) { const r = 4 * Math.sin(t), x = r * Math.cos(t), y = r * Math.sin(t); chk(`r = 4 sin θ on x² + (y − 2)² = 4 (θ=${t})`, x * x + (y - 2) ** 2, 4, 1e-9); }
     chk("cardioid area 3π/2", 0.5 * simpson(t => (1 + Math.cos(t)) ** 2, 0, 2 * Math.PI, 800), 1.5 * Math.PI, 1e-6);
     chk("one petal of cos 2θ = π/8", 0.5 * simpson(t => Math.cos(2 * t) ** 2, -Math.PI / 4, Math.PI / 4, 800), Math.PI / 8, 1e-6);
+    // Review: area between curves (dx = dy = exact) and the check answers
+    for (const [k, R] of Object.entries(RA)) { const A = raArea(R); chk(`area ${k} dx`, A.dx, R.ex, 1e-5); chk(`area ${k} dy`, A.dy, R.ex, 1e-5); }
+    chk("∫₀¹ (x − x³) = 1/4", simpson(x => x - x ** 3, 0, 1, 200), 0.25, 1e-9);
+    chk("∫₀² (4 − y²) = 16/3", simpson(y => 4 - y * y, 0, 2, 200), 16 / 3, 1e-9);
+    // Review: conics — every drawn point satisfies the expanded form; focus properties hold
+    for (const type of ["ell", "hypx", "hypy", "par"]) for (const [a, b, h, kk, pp] of [[3, 2, 0, 0, 0.5], [1.4, 2.6, -1.3, 0.7, 1.2], [2, 2, 1.5, -2, 0.25]]) {
+      const P = { type, a, b, h, k: kk, p: pp }, q = conic(P); let worst = 0;
+      for (const br of q.branches) for (const [x, y] of br) worst = Math.max(worst, Math.abs(q.G(x, y)) / (1 + Math.abs(q.F)));
+      chk(`conic ${type} (${a},${b},${h},${kk}) on its equation`, worst, 0, 1e-9);
+      const d2 = (u, v) => Math.hypot(u[0] - v[0], u[1] - v[1]), X = q.branches[0][37];
+      if (type === "ell" && q.foci) chk(`ellipse focal sum ${a},${b}`, d2(X, q.foci[0]) + d2(X, q.foci[1]), 2 * Math.max(a, b), 1e-9);
+      if (type.startsWith("hyp")) chk(`hyperbola focal difference ${type}`, Math.abs(d2(X, q.foci[0]) - d2(X, q.foci[1])), 2 * (type === "hypx" ? a : b), 1e-9);
+      if (type === "par") chk(`parabola focus = directrix distance`, d2(X, q.foci[0]), Math.abs(X[1] - q.directrix), 1e-9);
+    }
+    { const q = conic({ type: "ell", a: 3, b: 2, h: 2, k: -1, p: 1 }); for (const t of [0.4, 2.2, 4.1]) { const x = 2 + 3 * Math.cos(t), y = -1 + 2 * Math.sin(t); chk(`4x²+9y²−16x+18y−11 on (x−2)²/9+(y+1)²/4=1`, 4 * x * x + 9 * y * y - 16 * x + 18 * y - 11, 0, 1e-9); } }
+    chk("y = x²/8 focus: distance to (0,2) = distance to y = −2", Math.hypot(3, 9 / 8 - 2), 9 / 8 + 2, 1e-9);
+    // Review: parametric curves — on their Cartesian equation, velocity matches the numeric derivative
+    for (const [k, C0] of Object.entries(PCV)) for (const f of [0.1, 0.45, 0.8]) { const t = C0.T[0] + f * (C0.T[1] - C0.T[0]), [x, y] = C0.r(t); chk(`param ${k} on equation`, C0.G(x, y), 0, 1e-9); chk(`param ${k} velocity x`, C0.d(t)[0], nd(u => C0.r(u)[0], t), 1e-5); chk(`param ${k} velocity y`, C0.d(t)[1], nd(u => C0.r(u)[1], t), 1e-5); }
+    for (const t of [0.5, 2, 4]) { chk("(x−2)²+(y+1)²=1", (Math.cos(t)) ** 2 + (Math.sin(t)) ** 2, 1, 1e-12); const x = 1 + 2 * Math.cos(t), y = -2 + 3 * Math.sin(t); chk("(x−1)²/4+(y+2)²/9=1", (x - 1) ** 2 / 4 + (y + 2) ** 2 / 9, 1, 1e-12); }
+    chk("speed of (3cos t, 2sin t) at π/2", Math.hypot(-3 * Math.sin(Math.PI / 2), 2 * Math.cos(Math.PI / 2)), 3, 1e-12);
     // Formula sheet: every lesson button points at a real lesson
     for (const g of FORM) for (const [id] of g.go) R.push([byId(id) ? "ok " : "BAD", `formula link ${id}`]);
     return R;

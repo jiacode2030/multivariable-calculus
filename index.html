@@ -1699,6 +1699,51 @@ const RP = {
   spir: { tex: "r = θ/π", r: t => t / Math.PI, T: 2 * Math.PI, area: 4 * Math.PI / 3, atex: "4π/3" }
 };
 
+const RA = {
+  par: { name: "y = x² and y = 2 − x²", B: [-1.8, 1.8, -0.4, 2.4], top: x => 2 - x * x, bot: x => x * x, a: -1, b: 1, xs: [], right: y => Math.sqrt(Math.max(0, y <= 1 ? y : 2 - y)), left: y => -Math.sqrt(Math.max(0, y <= 1 ? y : 2 - y)), c: 0, d: 2, ys: [1], exact: "8/3", ex: 8 / 3,
+    dx: "∫<sub>−1</sub><sup>1</sup> [(2 − x²) − x²] dx", dy: "∫₀¹ [√y − (−√y)] dy + ∫₁² [√(2 − y) − (−√(2 − y))] dy", labels: [[1.42, 1.75, "y = x²"], [-1.42, 0.25, "y = 2 − x²"]] },
+  sq: { name: "y = √x and y = x/2", B: [-0.4, 4.4, -0.6, 2.6], top: x => Math.sqrt(Math.max(0, x)), bot: x => x / 2, a: 0, b: 4, xs: [], right: y => 2 * y, left: y => y * y, c: 0, d: 2, ys: [], exact: "4/3", ex: 4 / 3,
+    dx: "∫₀⁴ (√x − x/2) dx", dy: "∫₀² (2y − y²) dy", labels: [[1.1, 1.35, "y = √x"], [3.2, 1.25, "y = x/2"]] },
+  side: { name: "x = y² − 2 and y = x", B: [-2.4, 2.6, -1.6, 2.4], top: x => Math.sqrt(Math.max(0, x + 2)), bot: x => x < -1 ? -Math.sqrt(Math.max(0, x + 2)) : x, a: -2, b: 2, xs: [-1], right: y => y, left: y => y * y - 2, c: -1, d: 2, ys: [], exact: "9/2", ex: 4.5,
+    dx: "∫<sub>−2</sub><sup>−1</sup> 2√(x + 2) dx + ∫<sub>−1</sub><sup>2</sup> [√(x + 2) − x] dx", dy: "∫<sub>−1</sub><sup>2</sup> [y − (y² − 2)] dy", labels: [[-1.55, 1.9, "x = y² − 2"], [2.15, 1.75, "y = x"]] }
+};
+const pieceInt = (g, cuts) => { let s = 0; for (let i = 0; i < cuts.length - 1; i++) s += simpson(g, cuts[i], cuts[i + 1], 4000); return s; };
+const raArea = R => ({ dx: pieceInt(x => R.top(x) - R.bot(x), [R.a, ...R.xs, R.b]), dy: pieceInt(y => R.right(y) - R.left(y), [R.c, ...R.ys, R.d]) });
+// conics: standard form → features, curve points, and the expanded (general) form A x² + C y² + D x + E y + F = 0
+function conic(P) {
+  const { type, a, b, p, h } = P, k = P.k, pt = (x, y) => `(${fmt(x)}, ${fmt(y)})`, out = { pts: [], branches: [], asym: [] }, sh = (v, n) => Math.abs(v) < 1e-9 ? n : v > 0 ? `(${n} − ${fmt(v)})` : `(${n} + ${fmt(-v)})`, X = sh(h, "x"), Y = sh(k, "y");
+  if (type === "ell") {
+    Object.assign(out, { A: b * b, C: a * a, D: -2 * b * b * h, E: -2 * a * a * k, F: b * b * h * h + a * a * k * k - a * a * b * b, std: `${X}²/${fmt(a * a)} + ${Y}²/${fmt(b * b)} = 1` });
+    out.branches.push(range(160, 0, 2 * Math.PI).map(t => [h + a * Math.cos(t), k + b * Math.sin(t)]));
+    if (Math.abs(a - b) < 1e-9) { out.kind = `Circle of radius ${fmt(a)}`; out.feat = `center ${pt(h, k)}`; }
+    else { const c = Math.sqrt(Math.abs(a * a - b * b)), hz = a > b; out.kind = `Ellipse, longer axis ${hz ? "horizontal" : "vertical"}`; out.feat = `center ${pt(h, k)}; vertices ${hz ? `${pt(h - a, k)}, ${pt(h + a, k)}` : `${pt(h, k - b)}, ${pt(h, k + b)}`}; foci ${hz ? `${pt(h - c, k)}, ${pt(h + c, k)}` : `${pt(h, k - c)}, ${pt(h, k + c)}`} (c² = ${fmt(Math.max(a, b) ** 2)} − ${fmt(Math.min(a, b) ** 2)})`; out.verts = hz ? [[h - a, k], [h + a, k]] : [[h, k - b], [h, k + b]]; out.foci = hz ? [[h - c, k], [h + c, k]] : [[h, k - c], [h, k + c]]; }
+  } else if (type === "hypx" || type === "hypy") {
+    const xo = type === "hypx", c = Math.sqrt(a * a + b * b), m = b / a;
+    Object.assign(out, xo ? { A: b * b, C: -a * a, D: -2 * b * b * h, E: 2 * a * a * k, F: b * b * h * h - a * a * k * k - a * a * b * b, std: `${X}²/${fmt(a * a)} − ${Y}²/${fmt(b * b)} = 1` } : { A: -b * b, C: a * a, D: 2 * b * b * h, E: -2 * a * a * k, F: a * a * k * k - b * b * h * h - a * a * b * b, std: `${Y}²/${fmt(b * b)} − ${X}²/${fmt(a * a)} = 1` });
+    for (const sg of [1, -1]) out.branches.push(range(160, -2.6, 2.6).map(s => xo ? [h + sg * a * Math.cosh(s), k + b * Math.sinh(s)] : [h + a * Math.sinh(s), k + sg * b * Math.cosh(s)]));
+    out.asym = [m, -m]; out.kind = `Hyperbola opening ${xo ? "left and right" : "up and down"}`;
+    out.verts = xo ? [[h - a, k], [h + a, k]] : [[h, k - b], [h, k + b]]; out.foci = xo ? [[h - c, k], [h + c, k]] : [[h, k - c], [h, k + c]];
+    out.feat = `center ${pt(h, k)}; vertices ${pt(...out.verts[0])}, ${pt(...out.verts[1])}; foci ${pt(...out.foci[0])}, ${pt(...out.foci[1])} (c² = ${fmt(a * a)} + ${fmt(b * b)}); asymptotes ${Y === "y" ? "y" : Y} = ±${fmt(m)}${X === "x" ? "x" : X}`;
+  } else {
+    Object.assign(out, { A: 1, C: 0, D: -2 * h, E: -4 * p, F: h * h + 4 * p * k, std: `${X}² = ${fmt(4 * p)}${Y === "y" ? "y" : Y}` });
+    out.branches.push(range(200, h - 7, h + 7).map(x => [x, k + (x - h) ** 2 / (4 * p)]));
+    out.kind = "Parabola opening up"; out.verts = [[h, k]]; out.foci = [[h, k + p]]; out.directrix = k - p;
+    out.feat = `vertex ${pt(h, k)}; focus ${pt(h, k + p)}; directrix y = ${fmt(k - p)}`;
+  }
+  const term = (c, v, first) => { if (Math.abs(c) < 1e-9) return ""; const mag = Math.abs(c), cs = Math.abs(mag - 1) < 1e-9 && v ? "" : fmt(mag); return first ? `${c < 0 ? "−" : ""}${cs}${v}` : ` ${c < 0 ? "−" : "+"} ${cs}${v}`; };
+  let s = ""; for (const [c, v] of [[out.A, "x²"], [out.C, "y²"], [out.D, "x"], [out.E, "y"], [out.F, ""]]) s += term(c, v, !s);
+  out.gen = (s || "0") + " = 0"; out.G = (x, y) => out.A * x * x + out.C * y * y + out.D * x + out.E * y + out.F;
+  return out;
+}
+const PCV = {
+  circ: { name: "Circle", tex: "(2 cos t, 2 sin t)", r: t => [2 * Math.cos(t), 2 * Math.sin(t)], d: t => [-2 * Math.sin(t), 2 * Math.cos(t)], T: [0, 2 * Math.PI], eq: "x² + y² = 4", G: (x, y) => x * x + y * y - 4 },
+  cw: { name: "Same circle, clockwise", tex: "(2 sin t, 2 cos t)", r: t => [2 * Math.sin(t), 2 * Math.cos(t)], d: t => [2 * Math.cos(t), -2 * Math.sin(t)], T: [0, 2 * Math.PI], eq: "x² + y² = 4 (starts at (0, 2), goes clockwise)", G: (x, y) => x * x + y * y - 4 },
+  ell: { name: "Ellipse", tex: "(3 cos t, 2 sin t)", r: t => [3 * Math.cos(t), 2 * Math.sin(t)], d: t => [-3 * Math.sin(t), 2 * Math.cos(t)], T: [0, 2 * Math.PI], eq: "x²/9 + y²/4 = 1", G: (x, y) => x * x / 9 + y * y / 4 - 1 },
+  seg: { name: "Line segment", tex: "(−2, −1) + t⟨4, 3⟩", r: t => [-2 + 4 * t, -1 + 3 * t], d: () => [4, 3], T: [0, 1], eq: "y + 1 = ¾(x + 2), for −2 ≤ x ≤ 2", G: (x, y) => (y + 1) - 0.75 * (x + 2) },
+  par: { name: "Parabola", tex: "(t, t² − 1)", r: t => [t, t * t - 1], d: t => [1, 2 * t], T: [-2, 2], eq: "y = x² − 1", G: (x, y) => y - (x * x - 1) },
+  hyp: { name: "Hyperbola branch", tex: "(cosh t, sinh t)", r: t => [Math.cosh(t), Math.sinh(t)], d: t => [Math.sinh(t), Math.cosh(t)], T: [-1.8, 1.8], eq: "x² − y² = 1 with x ≥ 1 (right branch only)", G: (x, y) => x * x - y * y - 1 }
+};
+
 const U0 = [
 {
   id: "rderiv", sec: "Ch. 3", title: "Derivatives refresher", defaults: { fn: "sq", a: 1, h: 1 },
@@ -1761,6 +1806,82 @@ const U0 = [
   }
 },
 {
+  id: "rarea", sec: "5.6", title: "Area between curves", defaults: { reg: "par", ord: "dx", s: 0.35 },
+  controls() { return [{ t: "seg", k: "reg", label: "Region between", opts: Object.entries(RA).map(([k, v]) => [k, v.name]), wide: true }, { t: "seg", k: "ord", label: "Strips", opts: [["dx", "Vertical strips (dx)"], ["dy", "Horizontal strips (dy)"]] }, { t: "range", k: "s", label: "Strip position", min: 0.02, max: 0.98, step: 0.01 }]; },
+  calc(P) { const R = RA[P.reg], A = raArea(R), dx = P.ord === "dx", s = dx ? R.a + P.s * (R.b - R.a) : R.c + P.s * (R.d - R.c); return { R, A, dx, s, lo: dx ? R.bot(s) : R.left(s), hi: dx ? R.top(s) : R.right(s), pieces: dx ? R.xs.length + 1 : R.ys.length + 1 }; },
+  teach({ L, P }) {
+    const k = this.calc(P), R = k.R;
+    return `${head(L, "Area between curves: top minus bottom, or right minus left")}
+    <p class="big">With <b>vertical strips</b>, each strip runs from the bottom curve up to the top curve: ${M("A = ∫ₐᵇ [top(x) − bottom(x)] dx")}. With <b>horizontal strips</b>, each runs from the left curve to the right curve, both written as functions of y: ${M("A = ∫<sub>c</sub><sup>d</sup> [right(y) − left(y)] dy")}. If the top or bottom (or left or right) curve changes partway, split the integral there.</p>
+    <div class="setup">${M(`A = ${k.dx ? R.dx : R.dy}`)}</div>
+    ${roRow(ro("Area with dx", fmt(k.A.dx, 4), k.dx), ro("Area with dy", fmt(k.A.dy, 4), !k.dx), ro("Exact", R.exact), ro("Pieces needed", String(k.pieces)))}
+    ${roRow(ro("This strip", k.dx ? `at x = ${fmt(k.s)}: y from ${fmt(k.lo, 3)} to ${fmt(k.hi, 3)}` : `at y = ${fmt(k.s)}: x from ${fmt(k.lo, 3)} to ${fmt(k.hi, 3)}`))}
+    ${notice([`Slide the strip across the region: its ends always sit on the two boundary curves.`, `For x = y² − 2 and y = x, vertical strips need two integrals: left of x = −1 the bottom is the lower half of the parabola, to the right it's the line. Horizontal strips need only one. Pick the direction with fewer pieces.`, `Both directions give the same area. In Unit 3 this exact picture becomes the bounds of a double integral (see General regions & switching order).`])}
+    ${spot([`First sketch the curves and find where they intersect: those give the limits.`, `For dy, solve each curve for x (y = √x becomes x = y²).`, `If the curves cross inside the interval, top and bottom swap there: split the integral.`, `Choose the direction where each strip runs between the same two curves the whole way.`], "How to set it up")}
+    ${traps([`Use top minus bottom (or right minus left), not the other way around: area can't be negative.`, `With dy, the limits are y-values, not x-values.`])}
+    ${checks([[`Area between y = x³ and y = x for 0 ≤ x ≤ 1?`, `On [0, 1], x ≥ x³: ∫₀¹ (x − x³) dx = ½ − ¼ = 1/4.`], [`Area under y = √x from x = 0 to 4, using horizontal strips?`, `For 0 ≤ y ≤ 2, x runs from y² to 4: ∫₀² (4 − y²) dy = 8 − 8/3 = 16/3.`], [`Why does the region between y = x² and y = 2 − x² need two dy integrals?`, `For 0 ≤ y ≤ 1 the right edge is x = √y, but for 1 ≤ y ≤ 2 it's x = √(2 − y). The right curve changes at y = 1.`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), R = k.R, B = R.B, out = [...range(160, R.a, R.b).map(x => [x, R.top(x)]), ...range(160, R.b, R.a).map(x => [x, R.bot(x)])];
+    const s2 = { bounds: B, tick: 0.5, polys: [{ pts: out, fill: "rgba(30,140,140,.16)", stroke: C.teal, width: 2.5 }], curves: [], points: [], texts: R.labels.map(([x, y, t]) => ({ x, y, text: t, color: C.teal, font: "600 12.5px IBM Plex Sans, system-ui" })), pickable: false };
+    const w = k.dx ? (R.b - R.a) / 40 : (R.d - R.c) / 40;
+    s2.polys.push({ pts: k.dx ? [[k.s - w / 2, k.lo], [k.s + w / 2, k.lo], [k.s + w / 2, k.hi], [k.s - w / 2, k.hi]] : [[k.lo, k.s - w / 2], [k.hi, k.s - w / 2], [k.hi, k.s + w / 2], [k.lo, k.s + w / 2]], fill: "rgba(217,130,43,.75)", stroke: "#9A5512", width: 1 });
+    for (const x of k.dx ? R.xs : []) s2.curves.push({ pts: [[x, B[2]], [x, B[3]]], color: C.violet, width: 1.8, dash: [6, 4] });
+    for (const y of k.dx ? [] : R.ys) s2.curves.push({ pts: [[B[0], y], [B[1], y]], color: C.violet, width: 1.8, dash: [6, 4] });
+    if (k.dx) s2.points.push({ x: k.s, y: k.lo, color: C.blue, r: 4.5, label: "bottom", labelDy: 16 }, { x: k.s, y: k.hi, color: C.amber, r: 4.5, label: "top" });
+    else s2.points.push({ x: k.lo, y: k.s, color: C.blue, r: 4.5, label: "left", labelDy: 16 }, { x: k.hi, y: k.s, color: C.amber, r: 4.5, label: "right" });
+    return { s3: null, s2, legend: [["Region", C.teal], ["One strip", C.amber], ...(k.pieces > 1 ? [["Split: the formula changes here", C.violet]] : [])], v2Lbl: "The region and one strip" };
+  }
+},
+{
+  id: "rconic", sec: "11.6", title: "Conic sections", defaults: { type: "ell", a: 3, b: 2, p: 0.5, h: 0, k: 0 },
+  controls(P) { return [{ t: "seg", k: "type", label: "Conic", opts: [["ell", "Ellipse"], ["hypx", "Hyperbola (left/right)"], ["hypy", "Hyperbola (up/down)"], ["par", "Parabola"]], wide: true }, ...(P.type === "par" ? [{ t: "range", k: "p", label: "p (vertex to focus)", min: 0.2, max: 1.5, step: 0.05 }] : [{ t: "range", k: "a", label: "a (along x)", min: 0.5, max: 3, step: 0.1 }, { t: "range", k: "b", label: "b (along y)", min: 0.5, max: 3, step: 0.1 }]), { t: "range", k: "h", label: "Shift h (center x)", min: -2, max: 2, step: 0.1 }, { t: "range", k: "k", label: "Shift k (center y)", min: -2, max: 2, step: 0.1 }]; },
+  teach({ L, P }) {
+    const q = conic(P);
+    return `${head(L, "Conic sections: the curves inside every quadric surface")}
+    <p class="big">Ellipses, hyperbolas, and parabolas are the level curves and slices you'll see all course. In <b>standard form</b> you can read off the center, the axes, and the shape. If an equation has linear terms like ${M("x² − 4x")}, <b>complete the square</b> to get back to standard form: the linear terms only shift the curve.</p>
+    ${roRow(ro("Standard form", M(q.std), true), ro("Expanded (general) form", M(q.gen)))}
+    ${roRow(ro("What it is", q.kind), ro("Key features", q.feat))}
+    ${notice([`Move the shifts h and k: the shape doesn't change, but the expanded form picks up x and y terms. Completing the square undoes exactly that.`, `An ellipse with a = b is a circle.`, `A hyperbola's asymptotes cross at its center with slopes ±b/a. For x²/a² − y²/b² = 1 they are y = ±(b/a)x.`, `Each of these is a slice z = c of a quadric surface (lesson 1.1) or a level curve f(x, y) = c (lesson 2.1).`])}
+    ${spot([`Ax² + Cy² + Dx + Ey + F = 0 (no xy term): A and C with the same sign give an ellipse (or a single point, or nothing); opposite signs give a hyperbola (or two crossing lines); A or C equal to 0 gives a parabola (or lines, or nothing).`, `Complete the square: x² − 4x = (x − 2)² − 4. Factor out the coefficient of x² first.`, `Ellipse: the larger denominator is the longer axis. Hyperbola: the positive squared term tells which way it opens.`, `Foci: ellipse c² = (larger)² − (smaller)²; hyperbola c² = a² + b²; parabola (x − h)² = 4p(y − k) has its focus p above the vertex.`], "How to read one")}
+    ${traps([`Whatever you add to complete the square, add (times the factored coefficient) to the other side too.`, `x²/9 − y²/4 = 1 has asymptotes y = ±(2/3)x, not ±(3/2)x.`])}
+    ${checks([[`Identify 4x² + 9y² − 16x + 18y − 11 = 0.`, `4(x − 2)² − 16 + 9(y + 1)² − 9 − 11 = 0, so (x − 2)²/9 + (y + 1)²/4 = 1: an ellipse centered at (2, −1) with semi-axes 3 (along x) and 2 (along y).`], [`Which way does y²/4 − x²/9 = 1 open, and what are its asymptotes?`, `The y² term is positive, so it opens up and down, with vertices (0, ±2). Asymptotes: y = ±(2/3)x.`], [`Focus of y = x²/8?`, `x² = 8y = 4·2·y, so p = 2: focus (0, 2), directrix y = −2.`]])}`;
+  },
+  scene({ P }) {
+    const q = conic(P), B = [-6, 6, -5, 5], s2 = { bounds: B, tick: 1, curves: [], points: [], pickable: false };
+    for (const m of q.asym) s2.curves.push({ pts: [[B[0], P.k + m * (B[0] - P.h)], [B[1], P.k + m * (B[1] - P.h)]], color: C.gray, width: 1.5, dash: [6, 4] });
+    if (q.directrix !== undefined) s2.curves.push({ pts: [[B[0], q.directrix], [B[1], q.directrix]], color: C.gray, width: 1.5, dash: [6, 4] });
+    for (const br of q.branches) s2.curves.push({ pts: br, color: C.teal, width: 3 });
+    if (P.type !== "par") s2.points.push({ x: P.h, y: P.k, color: C.gray, r: 4, label: "center", labelDy: 16 });
+    (q.verts || []).forEach(([x, y]) => s2.points.push({ x, y, color: C.blue, r: 5 }));
+    (q.foci || []).forEach(([x, y]) => s2.points.push({ x, y, color: C.amber, r: 5, label: "focus" }));
+    return { s3: null, s2, legend: [["Curve", C.teal], ["Vertices", C.blue], ["Foci", C.amber], ...(q.asym.length ? [["Asymptotes", C.gray]] : q.directrix !== undefined ? [["Directrix", C.gray]] : [])], v2Lbl: "The conic" };
+  }
+},
+{
+  id: "rparam", sec: "11.1–11.2", title: "Parametric curves", defaults: { c: "ell", t: 0.8, vel: 1 },
+  controls(P) { const C0 = PCV[P.c]; return [{ t: "seg", k: "c", label: "Curve", opts: Object.entries(PCV).map(([k, v]) => [k, v.name]), wide: true }, { t: "range", k: "t", label: "Time t", min: C0.T[0], max: C0.T[1], step: (C0.T[1] - C0.T[0]) / 400 }, { t: "seg", k: "vel", label: "Velocity r′(t)", opts: [[1, "Show"], [0, "Hide"]] }]; },
+  onSeg(P, k) { if (k === "c") { const T = PCV[P.c].T; P.t = +(T[0] + 0.3 * (T[1] - T[0])).toFixed(3); } },
+  calc(P) { const C0 = PCV[P.c], t = clamp(P.t, C0.T[0], C0.T[1]), r = C0.r(t), d = C0.d(t); return { C: C0, t, r, d, sp: Math.hypot(...d) }; },
+  teach({ L, P }) {
+    const k = this.calc(P);
+    return `${head(L, "A parametrization is a path with a clock")}
+    <p class="big">${M("r(t) = (x(t), y(t))")} says where you are at each time t. The curve is the set of points; the parametrization also fixes where you start, which way you go, and how fast. The velocity ${M("r′(t) = (x′(t), y′(t))")} is tangent to the curve. Curves in space just add ${M("z(t)")}.</p>
+    ${roRow(ro("r(t)", M(k.C.tex)), ro("Cartesian equation", k.C.eq))}
+    ${roRow(ro("t", fmt(k.t, 3)), ro("Position r(t)", `(${fmt(k.r[0])}, ${fmt(k.r[1])})`), ro("Velocity r′(t)", vec(...k.d), true), ro("Speed ‖r′(t)‖", fmt(k.sp, 3)))}
+    ${notice([`The circle and the clockwise circle are the same set of points, traced from different starting points in opposite directions.`, `On the ellipse t moves steadily, but the speed changes: fastest at the ends of the short axis.`, `cosh t and sinh t give only the right branch of x² − y² = 1, because cosh t ≥ 1.`, `The velocity arrow is always tangent to the curve and points the way you're moving.`])}
+    ${spot([`Circle, center (h, k), radius R, counterclockwise: (h + R cos t, k + R sin t), 0 ≤ t ≤ 2π.`, `Ellipse (x − h)²/a² + (y − k)²/b² = 1: (h + a cos t, k + b sin t), 0 ≤ t ≤ 2π.`, `Segment from P to Q: P + t(Q − P), 0 ≤ t ≤ 1. Graph y = f(x): (t, f(t)).`, `Hyperbola x²/a² − y²/b² = 1: (±a cosh t, b sinh t), one branch for each sign.`, `To eliminate t: solve one equation for t, or use cos²t + sin²t = 1 (cosh²t − sinh²t = 1).`], "Standard parametrizations")}
+    ${traps([`Eliminating t can lose the restrictions: x = t², y = t² is only the part of y = x with x ≥ 0.`, `Check that the start point and direction match what the question asks for (e.g. counterclockwise starting at (2, 0)).`])}
+    ${checks([[`Parametrize (x − 1)²/4 + (y + 2)²/9 = 1 counterclockwise.`, `(1 + 2 cos t, −2 + 3 sin t), 0 ≤ t ≤ 2π.`], [`Eliminate t: x = 2 + cos t, y = sin t − 1.`, `cos t = x − 2, sin t = y + 1, so (x − 2)² + (y + 1)² = 1: a circle of radius 1 centered at (2, −1).`], [`Parametrize the segment from (1, 2) to (4, −2).`, `(1, 2) + t⟨3, −4⟩ = (1 + 3t, 2 − 4t), 0 ≤ t ≤ 1.`], [`Speed of (3 cos t, 2 sin t) at t = π/2?`, `r′ = (−3 sin t, 2 cos t) = (−3, 0) there, so the speed is 3.`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), C0 = k.C, ts = range(300, C0.T[0], C0.T[1]), trace = range(Math.max(2, Math.round(300 * (k.t - C0.T[0]) / (C0.T[1] - C0.T[0]))), C0.T[0], k.t).map(C0.r);
+    const s2 = { bounds: [-3.5, 3.5, -3.5, 3.5], tick: 1, curves: [{ pts: ts.map(C0.r), color: "rgba(30,140,140,.35)", width: 2, arrows: [0.2, 0.55, 0.9], arrowColor: "rgba(30,140,140,.7)" }, { pts: trace, color: C.teal, width: 3.5 }], points: [{ x: C0.r(C0.T[0])[0], y: C0.r(C0.T[0])[1], color: C.gray, r: 4, label: "start", labelDy: 16 }, { x: k.r[0], y: k.r[1], color: C.ink, label: `t = ${fmt(k.t, 2)}` }], arrows: [], pickable: false };
+    if (P.vel && k.sp > 1e-9) { const sc = Math.min(1, 1.6 / k.sp); s2.arrows.push({ from: k.r, to: [k.r[0] + k.d[0] * sc, k.r[1] + k.d[1] * sc], color: C.amber, label: sc < 1 ? "r′(t) (scaled)" : "r′(t)" }); }
+    return { s3: null, s2, legend: [["Path traced so far", C.teal], ["Direction of travel", "rgba(30,140,140,.7)"], ...(P.vel ? [["Velocity r′(t)", C.amber]] : [])], v2Lbl: "The curve in the plane" };
+  }
+},
+{
   id: "rpolar", sec: "11.3–11.5", title: "Polar coordinates refresher", defaults: { c: "card", th: 120, fan: 1 },
   controls(P) { const C0 = RP[P.c]; return [{ t: "seg", k: "c", label: "Curve", opts: Object.entries(RP).map(([k, v]) => [k, v.tex]) }, { t: "range", k: "th", label: "Angle θ", min: 0, max: Math.round(C0.T * 180 / Math.PI), step: 1, d: 0, u: "°" }, { t: "seg", k: "fan", label: "Swept area", opts: [[1, "Show"], [0, "Hide"]] }]; },
   onSeg(P, k) { if (k === "c") P.th = Math.round(RP[P.c].T * 180 / Math.PI * 0.6); },
@@ -1796,11 +1917,14 @@ const U0 = [
 
 // =================== REFERENCE: key formulas ===================
 const FORM = [
-  { h: "Review: single-variable tools", go: [["rderiv", "Derivatives"], ["rint", "Integration"], ["rpolar", "Polar"]], items: [
+  { h: "Review: single-variable tools", go: [["rderiv", "Derivatives"], ["rint", "Integration"], ["rarea", "Area between curves"], ["rconic", "Conics"], ["rparam", "Parametric curves"], ["rpolar", "Polar"]], items: [
     ["Tangent line", "y = f(a) + f′(a)(x − a)"],
     ["Product, quotient, chain rules", "(fg)′ = f′g + fg′ &nbsp;·&nbsp; (f/g)′ = (f′g − fg′)/g² &nbsp;·&nbsp; [f(g(x))]′ = f′(g(x)) g′(x)"],
     ["Fundamental Theorem of Calculus", "f continuous, F′ = f: ∫ₐᵇ f(x) dx = F(b) − F(a), and d/dx ∫ₐˣ f(t) dt = f(x)"],
     ["Substitution, by parts", "∫ f(g(x)) g′(x) dx = ∫ f(u) du &nbsp;·&nbsp; ∫ u dv = uv − ∫ v du"],
+    ["Area between curves", "∫ₐᵇ [top(x) − bottom(x)] dx or ∫<sub>c</sub><sup>d</sup> [right(y) − left(y)] dy; split where a boundary curve changes"],
+    ["Conic sections", "ellipse x²/a² + y²/b² = 1 &nbsp;·&nbsp; hyperbola x²/a² − y²/b² = 1 (asymptotes y = ±(b/a)x) &nbsp;·&nbsp; parabola x² = 4py (focus (0, p)); replace x, y by x − h, y − k to shift"],
+    ["Parametrizations", "circle (h + R cos t, k + R sin t), ellipse (h + a cos t, k + b sin t), 0 ≤ t ≤ 2π, counterclockwise &nbsp;·&nbsp; segment P + t(Q − P), 0 ≤ t ≤ 1"],
     ["Half-angle identities", "sin²θ = (1 − cos 2θ)/2 &nbsp;·&nbsp; cos²θ = (1 + cos 2θ)/2 &nbsp;·&nbsp; sin θ cos θ = ½ sin 2θ"],
     ["Polar ↔ Cartesian", "x = r cos θ, y = r sin θ, r² = x² + y², tan θ = y/x"],
     ["Area of a polar region", "A = ½ ∫<sub>α</sub><sup>β</sup> r² dθ (θ-interval traces the region once)"]] },
