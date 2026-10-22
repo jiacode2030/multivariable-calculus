@@ -673,7 +673,7 @@ const U1 = [
     ${roRow(ro("Equation", M(eq)), axes)}
     <div class="box notice"><h3>Surface</h3><div class="qname">${name}</div><p style="margin-top:4px">${why}</p></div>
     ${roRow(ro(`Slice z = ${fmt(P.k)}`, M(`${termStr(a, "x²", true)} ${termStr(b, "y²")} = ${fmt(K)}`)), ro("That slice is", tr))}
-    ${spot([`A variable is missing: cylinder along that axis.`, `Three squares, all +, = positive: ellipsoid. Bigger coefficient means a <b>shorter</b> axis (semi-axis 1/√a).`, `Two +, one −, = +1: one sheet (axis = minus variable). One +, two −, = +1: two sheets (axis = plus variable).`, `Three squares = 0, mixed signs: cone (axis = odd-sign variable).`, `One variable linear, two squares: same sign paraboloid, opposite signs saddle.`, `Linear terms like z² + 4z: complete the square first (it only shifts the surface).`])}
+    ${spot([`A variable is missing: cylinder along that axis.`, `Three squares, all +, = a positive constant D: ellipsoid. The semi-axis along x is √(D/A) (same for y, z), so a bigger coefficient means a <b>shorter</b> axis.`, `Two +, one −, = a positive constant: one sheet (axis = minus variable). One +, two −, = a positive constant: two sheets (axis = plus variable).`, `Three squares = 0, mixed signs: cone (axis = odd-sign variable).`, `One variable linear, two squares: same sign paraboloid, opposite signs saddle.`, `Linear terms like z² + 4z: complete the square first (it only shifts the surface).`])}
     ${checks([[`${M("x² + y² − z² = 1")}?`, `Hyperboloid of one sheet, axis z.`], [`${M("x² + 4y² + 16z² = 16")}: longest axis?`, `x²/16 + y²/4 + z² = 1: semi-axes 4, 2, 1. x is longest.`], [`Center and radius of ${M("x² + y² + z² − 4x + 6z = 3")}?`, `(x − 2)² + y² + (z + 3)² = 3 + 4 + 9 = 16: center (2, 0, −3), radius 4.`]])}`;
   },
   scene({ P }) {
@@ -695,7 +695,7 @@ const U1 = [
   teach({ L, P }) {
     const a = [P.ax, P.ay], b = [P.bx, P.by], d = a[0] * b[0] + a[1] * b[1], na = Math.hypot(...a), nb = Math.hypot(...b), th = na && nb ? deg(Math.acos(clamp(d / (na * nb), -1, 1))) : 0, comp = na ? d / na : 0, pr = na ? [a[0] * d / (na * na), a[1] * d / (na * na)] : [0, 0];
     return `${head(L, "The dot product measures how much two vectors agree")}
-    <p class="big">${M("a · b = a₁b₁ + a₂b₂ (+ a₃b₃) = ‖a‖‖b‖ cos θ")}. Positive: they point the same general way. Zero: <b>perpendicular</b>. Negative: opposite-ish. The <b>projection</b> of b onto a is the shadow of b on the line of a.</p>
+    <p class="big">${M("a · b = a₁b₁ + a₂b₂ (+ a₃b₃) = ‖a‖‖b‖ cos θ")}. For nonzero vectors: positive: they point the same general way. Zero: <b>perpendicular</b>. Negative: opposite-ish. The <b>projection</b> of b onto a is the shadow of b on the line of a.</p>
     ${roRow(ro("a · b", fmt(d), true), ro("‖a‖, ‖b‖", `${fmt(na)}, ${fmt(nb)}`), ro("Angle θ", fmt(th, 1) + "°"))}
     ${roRow(ro("comp<sub>a</sub>b = a·b/‖a‖ (a number)", fmt(comp)), ro("proj<sub>a</sub>b = (a·b/‖a‖²) a (a vector)", vec(...pr)))}
     ${notice([`Drag b (click the map). When the amber shadow shrinks to nothing, a · b = 0 and the vectors are perpendicular.`, `Past 90°, the shadow points backwards along a and a · b goes negative.`, `The dashed line from b's tip to its shadow is b − proj<sub>a</sub>b, which is always perpendicular to a.`])}
@@ -742,11 +742,11 @@ const U1 = [
     const { n, nn, Q, dist, foot } = this.geo(P);
     const eq = `${termStr(+n[0].toFixed(1), "x", true)} ${termStr(+n[1].toFixed(1), "y")} ${termStr(+n[2].toFixed(1), "z")} = ${fmt(P.d)}`;
     return `${head(L, "A plane is decided by one point and one normal")}
-    <p class="big">The plane ${M("ax + by + cz = d")} has <b>normal</b> ${M("n = ⟨a, b, c⟩")}, read straight off the coefficients. A <b>line</b> is ${M("r(t) = P + t v")}: a point plus a <b>direction</b>. The distance from Q to the plane is how far Q sits along n.</p>
+    <p class="big">The plane ${M("ax + by + cz = d")} has <b>normal</b> ${M("n = ⟨a, b, c⟩")}, read straight off the coefficients. A <b>line</b> is ${M("r(t) = P + t v")}: a point plus a <b>direction</b>. The distance from Q to the plane is how far Q sits along the <b>unit</b> normal n/‖n‖.</p>
     ${roRow(ro("Plane", M(eq)), ro("Normal n", vec3(n)))}
     ${roRow(ro("Distance from Q", fmt(Math.abs(dist), 3), true), ro("Closest point on plane", pt3(foot)), ro("Line from Q along n", M(`(${fmt(Q[0])}, ${fmt(Q[1])}, ${fmt(Q[2])}) + t⟨${fmt(n[0])}, ${fmt(n[1])}, ${fmt(n[2])}⟩`)))}
     ${notice([`Change d: the plane slides along its normal, staying parallel to itself.`, `The dashed line from Q hits the plane at a right angle: that's the shortest distance.`])}
-    ${spot([`Equation (no t) gives a <b>normal</b>; parametric (with t) gives a <b>direction</b>.`, `Plane through P with normal n: n · ⟨x − x₀, y − y₀, z − z₀⟩ = 0.`, `Distance from Q to the plane: |n · Q − d| / ‖n‖.`, `Angle between planes = angle between normals. Line ∩ plane: plug x(t), y(t), z(t) into the plane, solve for t.`, `Line ⟂ plane: use n as the direction. Two lines skew? Not parallel and never meet.`])}
+    ${spot([`Equation (no t) gives a <b>normal</b>; parametric (with t) gives a <b>direction</b>.`, `Plane through P with normal n: n · ⟨x − x₀, y − y₀, z − z₀⟩ = 0.`, `Distance from Q to the plane: |n · Q − d| / ‖n‖.`, `Angle between planes = angle between normals (take the acute one). Line ∩ plane: plug x(t), y(t), z(t) into the plane, solve for t.`, `Line ⟂ plane: use n as the direction. Two lines skew? Not parallel and never meet.`])}
     ${checks([[`Plane through (1, 2, 3) with normal ⟨2, −1, 1⟩?`, `2(x − 1) − (y − 2) + (z − 3) = 0, i.e. 2x − y + z = 3.`], [`Distance from the origin to 2x − y + z = 3?`, `|0 − 3| / √6 = 3/√6 ≈ 1.22.`], [`Where does x = t, y = 1 + t, z = 2t meet 2x − y + z = 3?`, `2t − 1 − t + 2t = 3 gives t = 4/3: point (4/3, 7/3, 8/3).`]])}`;
   },
   scene({ P }) {
@@ -801,7 +801,7 @@ const U1 = [
     <p class="big">Gravity gives ${M("a(t) = ⟨0, −g⟩")}. Integrate once for velocity ${M("v(t) = ⟨v₀cos α, v₀sin α − gt⟩")} and again for position. The distance actually traveled along the path is the <b>arc length</b> ${M("∫‖r′(t)‖ dt")}.</p>
     ${roRow(ro("Position r(t)", `(${fmt(p[0])}, ${fmt(p[1])}) m`), ro("Velocity v(t)", vec(...v)), ro("Speed", fmt(Math.hypot(...v)) + " m/s"), ro("Time t", fmt(k.t) + " s"))}
     ${roRow(ro("Flight time", fmt(k.T) + " s"), ro("Range", fmt(k.range) + " m"), ro("Max height", fmt(k.hmax) + " m"), ro("Distance along path so far", fmt(k.arc) + " m", true))}
-    ${notice([`The horizontal velocity never changes; only the vertical part shrinks, hits 0 at the top, then grows downward.`, `From ground level, 45° gives the longest range. Complementary angles (30° and 60°) land at the same spot.`, `Arc length is always more than the straight-line distance from launch.`])}
+    ${notice([`The horizontal velocity never changes; only the vertical part shrinks, hits 0 at the top, then grows downward.`, `From ground level (launch height 0), 45° gives the longest range, and complementary angles (30° and 60°) land at the same spot. From a raised launch neither is true.`, `Arc length is never less than the straight-line distance from launch (equal only along a straight path).`])}
     ${spot([`Integrate a(t) twice, using v(0) and r(0) to fix the constants.`, `Initial velocity from speed and direction: v₀ = speed × unit direction.`, `Max height: set v<sub>y</sub> = 0. Landing: set y = 0 and take the positive t.`, `Arc length: L = ∫‖r′(t)‖ dt. For "distance d along the curve", solve s(t) = d for t.`])}
     ${checks([[`v₀ = 20 m/s at 30° from the ground. Flight time and range (g = 9.8)?`, `T = 2·20·sin 30°/9.8 ≈ 2.04 s; range = 20² sin 60°/9.8 ≈ 35.3 m.`], [`Arc length of ${M("⟨cos t, sin t, t⟩")} for 0 ≤ t ≤ 2π?`, `‖r′‖ = √(sin²t + cos²t + 1) = √2, so L = 2π√2 ≈ 8.89.`]])}`;
   },
@@ -827,7 +827,7 @@ const U2 = [
   teach({ L, P, F }) { return `${head(L, "A level curve is a slice, seen from above")}
     <p class="big">The graph of ${nm(F)} is a surface. Cut it with the flat plane ${M("z = c")}: the cut is a curve. Drop that curve straight down onto the xy-plane and you get the <b>level curve</b> ${M("f(x, y) = c")}. The map is all those slices stacked, like a hiking contour map.</p>
     ${roRow(ro("Slice height c", fmt(P.c)), ro("Level curve", M(`f(x, y) = ${fmt(P.c)}`)))}
-    ${notice([`Move <b>c</b>. The amber curve on the surface and on the map are the <b>same curve</b>.`, `Close-together lines mean <b>steep</b>; far apart means gentle.`, `Try the Saddle: hyperbolas, and at c = 0 two crossing lines.`])}
+    ${notice([`Move <b>c</b>. The amber curve on the surface and on the map are the <b>same curve</b>.`, `With equally spaced levels, close-together lines mean <b>steep</b>; far apart means gentle.`, `Try the Saddle: hyperbolas, and at c = 0 two crossing lines.`])}
     ${spot([`"Sketch level curves": set f(x, y) = c and name the curve for several c (circles, ellipses, hyperbolas, lines).`, `"Match surface to contour map": compare spacing (steepness) and shape (rings = bowl or hill, X = saddle).`, `Domain questions: what makes f undefined (division by 0, √ of a negative, ln of ≤ 0)?`])}
     ${checks([[`Level curves are packed tightly in one region. What does that say about the surface?`, `It's steep there: height changes a lot over a short horizontal distance.`], [`Level curves of ${M("z = x² + y²")}?`, `Circles x² + y² = c (radius √c) for c > 0; a point at c = 0; nothing for c < 0.`]])}`; },
   scene({ P, f, smp }) {
@@ -845,7 +845,7 @@ const U2 = [
     <p class="big">For ${M("f<sub>x</sub>(a, b)")}, freeze ${M("y = b")} and walk in +x along the <b>blue slice</b>: its slope is ${M("f<sub>x</sub>")}. Freeze ${M("x = a")} and walk in +y along the <b>green slice</b>: that slope is ${M("f<sub>y</sub>")}.</p>
     ${roRow(ro("Point (a, b)", `(${fmt(P.a)}, ${fmt(P.b)})`), ro("f(a, b)", fmt(z0)), ro("f<sub>x</sub>(a, b)", fmt(fx(f, P.a, P.b))), ro("f<sub>y</sub>(a, b)", fmt(fy(f, P.a, P.b))))}
     ${notice([`The short blue and green arrows are tangent lines to each slice. Their steepness is f<sub>x</sub> and f<sub>y</sub>.`, `Drag the point to where the blue slice tops out: f<sub>x</sub> = 0 there.`])}
-    ${spot([`Compute f<sub>x</sub> by treating y as a constant (and vice versa), then plug in the point.`, `Second partials: f<sub>xy</sub> = f<sub>yx</sub> for nice functions (Clairaut), a quick check on your algebra.`])}
+    ${spot([`Compute f<sub>x</sub> by treating y as a constant (and vice versa), then plug in the point.`, `Second partials: f<sub>xy</sub> = f<sub>yx</sub> whenever both are continuous (Clairaut), a quick check on your algebra.`])}
     ${checks([[`${M("f = x²y")}: f<sub>x</sub> and f<sub>y</sub> at (1, 2)?`, `f<sub>x</sub> = 2xy = 4, f<sub>y</sub> = x² = 1.`], [`Geometric meaning of f<sub>y</sub>(a, b)?`, `Slope of the slice x = a in the +y direction.`]])}`; },
   scene({ P, f, smp }) {
     const { s3, s2 } = fnScene(f, smp), L = smp.L, a = P.a, b = P.b, z0 = f(a, b), xs = range(60, -L, L), h = L * 0.35, ax = fx(f, a, b), ay = fy(f, a, b);
@@ -872,7 +872,7 @@ const U2 = [
     ${roRow(ro("Position", `(${fmt(x)}, ${fmt(y)})`), ro("r′(t) = ⟨x′, y′⟩", vec(xp, yp)), ro("∇f there", vec(gx, gy)))}
     ${roRow(ro("f<sub>x</sub>·x′", fmt(gx * xp)), ro("f<sub>y</sub>·y′", fmt(gy * yp)), ro("dz/dt (sum)", fmt(dz), true), ro("Check: slope of z(t)", fmt(numeric)))}
     ${notice([`dz/dt is ∇f · r′: it's positive when the path heads uphill (arrow within 90° of ∇f), zero when it runs along a level curve.`, `It's the directional derivative times your speed: ∇f · r′ = ‖r′‖ D<sub>u</sub>f.`])}
-    ${spot([`Draw the tree diagram: z → x, y → t (or s, t). Multiply along each branch, add the branches.`, `For z = f(x, y), x = x(s, t), y = y(s, t): ∂z/∂s = f<sub>x</sub>x<sub>s</sub> + f<sub>y</sub>y<sub>s</sub>.`, `Implicit differentiation: F(x, y) = 0 gives dy/dx = −F<sub>x</sub>/F<sub>y</sub>.`])}
+    ${spot([`Draw the tree diagram: z → x, y → t (or s, t). Multiply along each branch, add the branches.`, `For z = f(x, y), x = x(s, t), y = y(s, t): ∂z/∂s = f<sub>x</sub>x<sub>s</sub> + f<sub>y</sub>y<sub>s</sub>.`, `Implicit differentiation: F(x, y) = 0 gives dy/dx = −F<sub>x</sub>/F<sub>y</sub> (where F<sub>y</sub> ≠ 0).`])}
     ${checks([[`${M("z = x²y")}, ${M("x = cos t, y = sin t")}. dz/dt at t = π/4?`, `f<sub>x</sub> = 2xy = 1, f<sub>y</sub> = x² = 1/2, x′ = −√2/2, y′ = √2/2. dz/dt = −√2/2 + √2/4 = −√2/4 ≈ −0.354.`], [`dy/dx on the circle x² + y² = 1?`, `F = x² + y² − 1: dy/dx = −F<sub>x</sub>/F<sub>y</sub> = −x/y.`]])}`;
   },
   scene({ P, f, smp }) {
@@ -956,7 +956,7 @@ const U2 = [
     ${roRow(ro("u (unit)", vec(u1, u2)), ro("∇f", vec(gx, gy)), ro("Angle φ to ∇f", fmt(ang, 0) + "°"), ro("D<sub>u</sub>f = ∇f · u", fmt(du), true))}
     <div><div class="gauge" aria-hidden="true"><i style="left:${pos}%"></i></div><div class="gauge-l"><span>−‖∇f‖ = ${fmt(-gn)}</span><span>0</span><span>‖∇f‖ = ${fmt(gn)}</span></div></div>
     ${notice([`D<sub>u</sub>f is biggest along ∇f (φ = 0°), zero along the level curve (φ = 90°), most negative opposite ∇f.`, `"Half the max": φ = 60° on either side (cos 60° = 1/2). Two answers. "Rate 0": two opposite answers.`])}
-    ${spot([`"Elevation stays constant": solve ∇f · ⟨x, y⟩ = 0, normalize. ± two unit vectors.`, `"D<sub>u</sub>f = k": solve ∇f · ⟨x, y⟩ = k with x² + y² = 1.`, `"Toward Q": normalize PQ first. A speed is given? Rate per time = D<sub>u</sub>f × speed.`], "Typical exam questions")}
+    ${spot([`"Elevation stays constant": solve ∇f · ⟨x, y⟩ = 0, normalize. ± two unit vectors.`, `"D<sub>u</sub>f = k": solve ∇f · ⟨x, y⟩ = k with x² + y² = 1. Solutions exist only if |k| ≤ ‖∇f‖.`, `"Toward Q": normalize PQ first. A speed is given? Rate per time = D<sub>u</sub>f × speed.`], "Typical exam questions")}
     ${traps([`Normalize before using a direction.`, `Give ± when the question asks for all directions.`])}
     ${checks([[`∇f = ⟨3, 4⟩. Directions keeping f constant?`, `u = ±⟨4/5, −3/5⟩ (check: 12 − 12 = 0).`], [`∇f = ⟨3, 4⟩. Half the max rate?`, `φ = ±60° from ∇f: D<sub>u</sub>f = 2.5. Two unit vectors.`], [`P = (1, 1), ∇f = ⟨2, −1⟩. D<sub>u</sub>f toward Q = (4, 5)?`, `u = ⟨3/5, 4/5⟩, D<sub>u</sub>f = 6/5 − 4/5 = 2/5.`]])}`;
   },
@@ -995,7 +995,7 @@ const U2 = [
   controls(P, ctx) { return [{ t: "fn" }, ...ptCtl(ctx.F)]; }, pick: pickAB,
   act(name, P, { f, F }) { const p = criticalPoints(f, F.L)[+name]; if (p) { P.a = +p.x.toFixed(2); P.b = +p.y.toFixed(2); } },
   teach({ L, F, f }) { const cps = criticalPoints(f, F.L); return `${head(L, "Critical points: peaks, pits and saddles")}
-    <p class="big">A critical point is where ${M("∇f = ⟨0, 0⟩")}. The <b>second derivative test</b> uses ${M("D = f<sub>xx</sub>f<sub>yy</sub> − (f<sub>xy</sub>)²")}.</p>
+    <p class="big">A critical point is an interior point where ${M("∇f = ⟨0, 0⟩")} or where f<sub>x</sub> or f<sub>y</sub> doesn't exist. For f with continuous second partials, the <b>second derivative test</b> uses ${M("D = f<sub>xx</sub>f<sub>yy</sub> − (f<sub>xy</sub>)²")}.</p>
     <div class="box"><h3>Critical points of ${nm(F)} in view</h3>${cps.length ? `<div class="tablewrap"><table class="cp"><thead><tr><th>Point</th><th>D</th><th>f<sub>xx</sub></th><th>Type</th></tr></thead><tbody>${cps.map((p, i) => `<tr data-act="${i}"><td class="m">(${fmt(p.x)}, ${fmt(p.y)})</td><td>${fmt(p.D)}</td><td>${fmt(p.A)}</td><td><span class="pill ${p.type}">${{ min: "local min", max: "local max", saddle: "saddle", inc: "test fails (D = 0)" }[p.type]}</span></td></tr>`).join("")}</tbody></table></div>` : `<p>No critical points in this window.</p>`}</div>
     ${notice([`Near a min or max the level curves are rings. Near a saddle they make an <b>X</b>.`, `Try "Min + saddle" and "Two dips".`])}
     ${spot([`Solve f<sub>x</sub> = 0 and f<sub>y</sub> = 0, then: D > 0 & f<sub>xx</sub> > 0 local min; D > 0 & f<sub>xx</sub> < 0 local max; D < 0 saddle; D = 0 inconclusive.`], "Typical exam questions")}
@@ -1083,7 +1083,7 @@ const U2 = [
     <p class="big">The tangent plane matches f's height and slopes. The <b>quadratic (2nd-order) Taylor approximation</b> also matches its curvature: ${M("Q = f + f<sub>x</sub>Δx + f<sub>y</sub>Δy + ½(f<sub>xx</sub>Δx² + 2f<sub>xy</sub>ΔxΔy + f<sub>yy</sub>Δy²)")}.</p>
     ${roRow(ro("f, f<sub>x</sub>, f<sub>y</sub>", `${fmt(ap.z)}, ${fmt(ap.gx)}, ${fmt(ap.gy)}`), ro("f<sub>xx</sub>, f<sub>xy</sub>, f<sub>yy</sub>", `${fmt(ap.A)}, ${fmt(ap.B)}, ${fmt(ap.Cc)}`))}
     ${roRow(ro("Actual f", fmt(act, 4)), ro("1st order", fmt(T1, 4) + ` (err ${fmt(act - T1, 3)})`, P.order === 1), ro("2nd order", fmt(T2, 4) + ` (err ${fmt(act - T2, 3)})`, P.order === 2))}
-    ${notice([`Switch between 1st and 2nd order: the violet patch bends to hug the surface.`, `The 2nd-order error shrinks like (step)³: halve the step and it drops about 8×.`])}
+    ${notice([`Switch between 1st and 2nd order: the violet patch bends to hug the surface.`, `The 2nd-order error shrinks like (step)³: halving the step typically cuts it about 8×.`])}
     ${spot([`Needs all second partials at the point; write the general formula first, then substitute.`, `At a critical point the linear terms vanish, so Q is exactly what the second derivative test reads.`])}
     ${checks([[`2nd-order Taylor for ${M("eˣ cos y")} at (0, 0)?`, `f = 1, f<sub>x</sub> = 1, f<sub>y</sub> = 0, f<sub>xx</sub> = 1, f<sub>xy</sub> = 0, f<sub>yy</sub> = −1: Q = 1 + x + ½x² − ½y².`], [`Estimate e<sup>0.1</sup>cos 0.2 with it.`, `1 + 0.1 + 0.005 − 0.02 = 1.085 (actual ≈ 1.0831).`]])}`; },
   scene({ P, f, smp }) {
@@ -1149,7 +1149,7 @@ const U3 = [
     <p class="big">For ${M("dy dx")}, slice the region with <b>vertical</b> lines: the inside bounds are the bottom and top curves (functions of x), the outside bounds are constants. For ${M("dx dy")}, slice <b>horizontally</b>: inside bounds are left and right curves (functions of y). Same region, same answer.</p>
     <div class="setup">dy dx: ${M(R.I)}</div><div class="setup">dx dy: ${M(R.II)}</div>
     ${roRow(ro("Current slice", sl), ro("Value (dy dx)", fmt(I1, 4), P.ord === "dydx"), ro("Value (dx dy)", fmt(I2, 4), P.ord === "dxdy"))}
-    ${notice([`Slide the slice: the green segment shows the inside bounds at that spot.`, `Both orders give the same number. Switching just re-describes the region.`, `Pick e<sup>x²</sup> on the triangle: dx dy is impossible by hand, dy dx is easy. That's why you switch.`])}
+    ${notice([`Slide the slice: the green segment shows the inside bounds at that spot.`, `Both orders give the same number. Switching just re-describes the region.`, `Pick e<sup>x²</sup> on the triangle: dx dy needs an antiderivative of e<sup>x²</sup>, which has no elementary formula; dy dx is easy. That's why you switch.`])}
     ${spot([`Always sketch the region first. Read the curves as y = … for dy dx, or x = … for dx dy.`, `Outside bounds are numbers; inside bounds can depend on the outer variable, never the other way.`, `Switching order: sketch from the given bounds, then re-slice the other way. Solve curves for the other variable (y = x² becomes x = √y).`, `Area of R = ∬<sub>R</sub> 1 dA.`])}
     ${traps([`Outer bounds must be constants.`, `When re-slicing, a region may need to split into two integrals if the top or bottom curve changes partway.`])}
     ${checks([[`Area between ${M("y = x²")} and ${M("y = x")}?`, `∫₀¹ (x − x²) dx = ½ − ⅓ = 1/6.`], [`${M("∫₀¹ ∫<sub>y</sub><sup>1</sup> e<sup>x²</sup> dx dy")}?`, `Switch: ∫₀¹ ∫₀<sup>x</sup> e<sup>x²</sup> dy dx = ∫₀¹ x e<sup>x²</sup> dx = (e − 1)/2 ≈ 0.859.`]])}`;
@@ -1217,7 +1217,7 @@ const U3 = [
     <p class="big">A thin plate with density ${M("ρ(x, y)")} has mass ${M("M = ∬ ρ dA")}. Its <b>center of mass</b> is the density-weighted average position: ${M("x̄ = (1/M)∬ x ρ dA")}, ${M("ȳ = (1/M)∬ y ρ dA")}. Balance the plate on a pin there and it stays level.</p>
     ${roRow(ro("Mass M", fmt(k.M, 4)), ro("M<sub>y</sub> = ∬ xρ dA", fmt(k.My, 4)), ro("M<sub>x</sub> = ∬ yρ dA", fmt(k.Mx, 4)), ro("Center (x̄, ȳ)", `(${fmt(k.xb, 3)}, ${fmt(k.yb, 3)})`, true))}
     ${notice([`Darker shading = denser. Make the density heavier on one side and the balance point slides toward it.`, `Uniform density: the center of mass is the shape's centroid. Symmetry puts it on the symmetry line.`])}
-    ${spot([`M<sub>x</sub> uses y (moment about the x-axis), M<sub>y</sub> uses x. Easy to swap: think "which coordinate am I averaging?"`, `Use symmetry first: a symmetric shape with symmetric density has x̄ (or ȳ) = 0 for free.`, `Disks and half disks: switch to polar (and keep the extra r).`])}
+    ${spot([`M<sub>x</sub> uses y (moment about the x-axis), M<sub>y</sub> uses x. Easy to swap: think "which coordinate am I averaging?"`, `Use symmetry first: if the shape and the density are both symmetric about the y-axis, then x̄ = 0 for free (about the x-axis: ȳ = 0).`, `Disks and half disks: switch to polar (and keep the extra r).`])}
     ${checks([[`Uniform half disk of radius R (y ≥ 0): ȳ?`, `M = πR²/2, M<sub>x</sub> = ∫₀<sup>π</sup>∫₀<sup>R</sup> r sin θ · r dr dθ = 2R³/3, so ȳ = 4R/(3π) ≈ 0.424R. (R = 1.5 gives ≈ 0.637.)`], [`Uniform triangle (0,0), (2,0), (0,2)?`, `Centroid = average of the vertices: (2/3, 2/3).`]])}`;
   },
   scene({ P }) {
@@ -1245,7 +1245,7 @@ const U3 = [
     ${roRow(ro("Numeric volume", fmt(V, 4), true), ro("Cell point (x, y, z)", pt3([P.r * Math.cos(t), P.r * Math.sin(t), P.z])), ro("Cell dV ≈ r Δr Δθ Δz", fmt(P.r * 0.2 * (20 * Math.PI / 180) * 0.3, 4)))}
     ${notice([`Move the amber cell outward (bigger r): it gets wider, because the arc side is r Δθ.`, `Bounds come from the shape: z between the bottom and top surfaces, then r and θ describe the shadow on the xy-plane.`])}
     ${spot([`Rectangular: ∭ f dz dy dx, with z from the bottom surface to the top surface, then a 2D region for the shadow.`, `Cylindrical when you see x² + y² (a cylinder, cone, or paraboloid around the z-axis).`, `Volume = ∭ 1 dV. Mass = ∭ ρ dV; center of mass like the 2D case with z̄ added.`])}
-    ${traps([`Cylindrical needs the extra r: dV = r dz dr dθ.`, `For a cone z = r, the bounds are r ≤ z ≤ top, not 0 ≤ z.`])}
+    ${traps([`Cylindrical needs the extra r: dV = r dz dr dθ.`, `For the solid inside the cone z = r (up to a top), z runs from r to the top, not from 0.`])}
     ${checks([[`Volume under ${M("z = 4 − x² − y²")} above z = 0?`, `∫₀<sup>2π</sup> ∫₀² (4 − r²) r dr dθ = 2π(8 − 4) = 8π.`], [`Volume of the cone r ≤ z ≤ 2?`, `2π ∫₀² (2 − r) r dr = 2π(4 − 8/3) = 8π/3.`]])}`;
   },
   scene({ P }) {
@@ -1283,7 +1283,7 @@ const U3 = [
     <div class="setup">${M(`M = ${k.S0.setup} ρ · r dz dr dθ`)}</div>
     ${roRow(ro("Volume", fmt(k.V, 4)), ro("Mass M", fmt(k.M, 4)), ro("M<sub>xy</sub> = ∭ zρ dV", fmt(k.Mxy, 4)))}
     ${roRow(ro("Center of mass", `(0, 0, ${fmt(k.zb, 4)})`, true), ro("I<sub>z</sub>", fmt(k.Iz, 4)), ro("Radius of gyration √(I<sub>z</sub>/M)", fmt(Math.sqrt(k.Iz / k.M), 4)))}
-    ${notice([`Every solid here is symmetric about the z-axis, so x̄ = ȳ = 0 for free; only z̄ needs work.`, `Density z drags the balance point up; density x² + y² pushes mass outward, so I<sub>z</sub> jumps while z̄ barely moves.`, `Cone vs. half ball: the cone's mass sits near its wide top, so z̄ = 3h/4 is high.`])}
+    ${notice([`Every solid here is symmetric about the z-axis, so x̄ = ȳ = 0 for free; only z̄ needs work.`, `Density z drags the balance point up. Density x² + y² puts more mass far from the axis, so I<sub>z</sub> grows a lot; z̄ shifts toward wherever the solid is widest.`, `Cone vs. half ball: the cone's mass sits near its wide top, so z̄ = 3h/4 is high.`])}
     ${spot([`M<sub>xy</sub> (moment about the xy-plane) uses z; M<sub>yz</sub> uses x; M<sub>xz</sub> uses y. Divide each by M.`, `Pick coordinates from the shape: cylindrical (dV = r dz dr dθ) for things around the z-axis, spherical (ρ² sin φ) for balls and cones.`, `Average value of f on E = (1/Volume) ∭ f dV.`, `I<sub>x</sub> uses y² + z², I<sub>y</sub> uses x² + z², I<sub>z</sub> uses x² + y²: the squared distance to that axis.`])}
     ${traps([`Keep the Jacobian (r or ρ² sin φ) inside every integral: M, the moments, and I.`, `Don't use ρ for both density and the spherical radius in the same line. Rename one.`])}
     ${checks([[`Uniform solid half ball of radius a (z ≥ 0): z̄?`, `M = (2/3)πa³, M<sub>xy</sub> = ∫₀<sup>2π</sup>∫₀<sup>π/2</sup>∫₀<sup>a</sup> ρ cos φ · ρ² sin φ dρ dφ dθ = πa⁴/4, so z̄ = 3a/8 (a = 2 gives 0.75).`], [`Uniform cone r ≤ z ≤ h: z̄?`, `M = πh³/3, M<sub>xy</sub> = 2π∫₀<sup>h</sup>∫<sub>r</sub><sup>h</sup> z r dz dr = πh⁴/4, so z̄ = 3h/4.`], [`I<sub>z</sub> of the uniform cylinder r ≤ a, 0 ≤ z ≤ h (ρ = 1)?`, `∫₀<sup>2π</sup>∫₀<sup>a</sup>∫₀<sup>h</sup> r² · r dz dr dθ = πa⁴h/2 = ½Ma². (a = 1, h = 2 gives π.)`]])}`;
@@ -1314,7 +1314,7 @@ const U3 = [
     ${roRow(ro("(x, y, z)", pt3([x, y, z]), true), ro("r = ρ sin φ (distance from z-axis)", fmt(P.rho * Math.sin(f))), ro("Check x² + y² + z² = ρ²", fmt(x * x + y * y + z * z, 3)))}
     <div class="setup">Volume = ${M(S0.setup)} = ${M(S0.vol)} ≈ ${fmt(V, 4)}</div>
     ${notice([`φ = 0 points straight up; φ = 90° lies flat in the xy-plane; φ = 180° points straight down.`, `The cone φ = constant and the sphere ρ = constant are the "easy" surfaces in spherical, just like circles in polar.`])}
-    ${spot([`Use spherical for balls, spheres, and cones centered at the origin (x² + y² + z² appears).`, `Cone z = √(x² + y²) is φ = π/4. Sphere x² + y² + z² = a² is ρ = a. Plane z = a is ρ = a sec φ.`, `Converting: ρ = √(x² + y² + z²), cos φ = z/ρ, tan θ = y/x (watch the quadrant).`])}
+    ${spot([`Use spherical for balls and spheres centered at the origin, and cones with their vertex at the origin around the z-axis (x² + y² + z² appears).`, `Cone z = √(x² + y²) is φ = π/4. Sphere x² + y² + z² = a² is ρ = a. Plane z = a is ρ = a sec φ.`, `Converting: ρ = √(x² + y² + z²), cos φ = z/ρ, tan θ = y/x (watch the quadrant).`])}
     ${traps([`dV = ρ² sin φ (not ρ sin φ, not sin θ).`, `φ only runs from 0 to π.`])}
     ${checks([[`Volume of a ball of radius R in spherical?`, `∫₀<sup>2π</sup>∫₀<sup>π</sup>∫₀<sup>R</sup> ρ² sin φ dρ dφ dθ = 2π · 2 · R³/3 = 4πR³/3.`], [`Convert (1, 1, √2) to spherical.`, `ρ = 2, cos φ = √2/2 so φ = π/4, θ = π/4.`], [`Volume of ρ ≤ 1, φ ≤ π/4?`, `2π(1 − √2/2)/3 ≈ 0.613.`]])}`;
   },
@@ -1450,7 +1450,7 @@ const U4 = [
     ${F.err ? `<p class="err">${F.err}</p>` : ""}
     ${roRow(ro("Point", `(${fmt(P.px)}, ${fmt(P.py)})`), ro("div F", fmt(d, 3), P.show === "div"), ro("curl F · k", fmt(c, 3), P.show === "curl"), ro("Paddle wheel", Math.abs(c) < 1e-4 ? "doesn't turn" : c > 0 ? "turns counterclockwise" : "turns clockwise"))}
     ${notice([`Orange = positive, blue = negative, white = zero. The glyph at the probe shows which way a tiny paddle wheel turns.`, `Shear ⟨y, 0⟩ has straight-line flow but curl −1: the top moves faster than the bottom, so a paddle wheel turns clockwise.`, `Spin has div 0: as much flows in as out of every little box.`])}
-    ${spot([`div is a scalar; curl (3D) is a vector. ∇·(∇×F) = 0 and ∇×(∇f) = 0 always.`, `curl F = 0 on a simply connected region ⇔ F conservative.`, `"Incompressible" means div F = 0; "irrotational" means curl F = 0.`])}
+    ${spot([`div is a scalar; curl (3D) is a vector. ∇·(∇×F) = 0 and ∇×(∇f) = 0 whenever the second partials are continuous.`, `For F with continuous partials on a simply connected region: curl F = 0 ⇔ F conservative.`, `"Incompressible" means div F = 0; "irrotational" means curl F = 0.`])}
     ${traps([`curl order: (Q<sub>x</sub> − P<sub>y</sub>), not (P<sub>y</sub> − Q<sub>x</sub>). Use the determinant with i, j, k on top.`])}
     ${checks([[`div and curl of ${M("⟨x, y⟩")}?`, `div = 1 + 1 = 2, curl = 0 − 0 = 0.`], [`div and curl of ${M("⟨−y, x⟩")}?`, `div = 0, curl = 1 − (−1) = 2.`], [`curl of ${M("⟨y, 0⟩")}?`, `0 − 1 = −1 (clockwise).`], [`curl of ${M("F = ⟨xz, xyz, −y²⟩")}?`, `⟨−2y − xy, x − 0, yz − 0⟩ = ⟨−2y − xy, x, yz⟩.`]])}`;
   },
@@ -1503,9 +1503,9 @@ const U4 = [
     return `${head(L, "Conservative: the work only depends on where you start and stop")}
     <p class="big">If ${M("F = ∇f")}, then ${M("∫<sub>C</sub> F·dr = f(end) − f(start)")} (the Fundamental Theorem for line integrals), for <b>every</b> path. Around any closed loop the work is 0. Test (2D, simply connected domain): ${M("P<sub>y</sub> = Q<sub>x</sub>")}.</p>
     ${roRow(ro("Q<sub>x</sub> − P<sub>y</sub>", fmt(test, 3)), ro("Work along straight path", fmt(w("A"), 4)), ro("Along purple path", fmt(w("Bp"), 4)), ro("Along green L-path", fmt(w("Cp"), 4)))}
-    ${F.f ? roRow(ro("Potential f", M(F.ftex)), ro(`f(${fmt(P.bx)}, ${fmt(P.by)}) − f(0, 0)`, fmt(F.f(P.bx, P.by) - F.f(0, 0), 4), true)) : `<div class="box trap"><h3>Not conservative</h3><p>Q<sub>x</sub> − P<sub>y</sub> = 2 ≠ 0, so the three paths give different work, and there is no potential surface.</p></div>`}
+    ${F.f ? roRow(ro("Potential f", M(F.ftex)), ro(`f(${fmt(P.bx)}, ${fmt(P.by)}) − f(0, 0)`, fmt(F.f(P.bx, P.by) - F.f(0, 0), 4), true)) : `<div class="box trap"><h3>Not conservative</h3><p>Q<sub>x</sub> − P<sub>y</sub> = 2 ≠ 0, so the work depends on the path (here the three paths disagree), and there is no potential function.</p></div>`}
     ${notice([`Bend the purple path or drag the end point: for a conservative field all three numbers stay equal.`, `The 3D view is the potential f; work = how much you climbed on it. Path doesn't matter, only the height difference.`])}
-    ${spot([`Find f: integrate P in x, add g(y), differentiate in y and match Q to find g′(y).`, `3D test: curl F = 0 (P<sub>y</sub> = Q<sub>x</sub>, P<sub>z</sub> = R<sub>x</sub>, Q<sub>z</sub> = R<sub>y</sub>).`, `"Path-independent," "∮ F·dr = 0 for every loop," "F = ∇f": all the same thing.`])}
+    ${spot([`Find f: integrate P in x, add g(y), differentiate in y and match Q to find g′(y).`, `3D test (simply connected domain): curl F = 0 (P<sub>y</sub> = Q<sub>x</sub>, P<sub>z</sub> = R<sub>x</sub>, Q<sub>z</sub> = R<sub>y</sub>).`, `"Path-independent," "∮ F·dr = 0 for every loop," "F = ∇f": all the same thing.`])}
     ${traps([`The test needs a simply connected domain: ⟨−y, x⟩/(x² + y²) passes the test but has work 2π around the origin.`])}
     ${checks([[`Potential for ${M("⟨2xy, x²⟩")}; work from (0,0) to (1,2)?`, `f = ∫2xy dx = x²y + g(y); f<sub>y</sub> = x² + g′ = x², so g = const. Work = f(1,2) − f(0,0) = 2.`], [`Is ${M("⟨y, x + 1⟩")} conservative? Potential?`, `P<sub>y</sub> = 1 = Q<sub>x</sub>. f = xy + y.`]])}`;
   },
@@ -1571,7 +1571,7 @@ const U4 = [
     <div class="setup">${M(k.S0.par)}</div>
     ${roRow(ro("dS factor", M(k.S0.dS)), ro("r<sub>u</sub> × r<sub>v</sub> at the patch", vec3(n)), ro("Patch area ≈ |r<sub>u</sub> × r<sub>v</sub>| Δu Δv", fmt(norm3(n) * k.du * k.dv, 4)))}
     ${roRow(ro("Surface area (numeric)", fmt(k.area, 4), !flux), ro("Exact area", k.S0.area(k.R)), ro(`Flux of ${this.F3S[P.F3].name} (outward / upward)`, fmt(k.flux, 4), flux))}
-    ${notice([`The amber patch is one dS. The green and violet arrows are r<sub>u</sub> and r<sub>v</sub>; the red arrow is r<sub>u</sub> × r<sub>v</sub> (the normal).`, `On the sphere, patches near the poles shrink: that's the sin φ.`, `${M("⟨0, 0, 1⟩")} through any cap over a disk of radius R gives πR²: it only "sees" the shadow.`])}
+    ${notice([`The amber patch is one dS. The green and violet arrows are r<sub>u</sub> and r<sub>v</sub>; the red arrow is r<sub>u</sub> × r<sub>v</sub> (the normal).`, `On the sphere, patches near the poles shrink: that's the sin φ.`, `The upward flux of ${M("⟨0, 0, 1⟩")} through any cap that is a graph over a disk of radius R is πR²: it only "sees" the shadow.`])}
     ${spot([`Graph z = g(x, y): dS = √(1 + g<sub>x</sub>² + g<sub>y</sub>²) dA, and upward n dS = ⟨−g<sub>x</sub>, −g<sub>y</sub>, 1⟩ dA.`, `Sphere radius R: dS = R² sin φ dφ dθ, n = ⟨x, y, z⟩/R.`, `Closed surface + flux: consider the divergence theorem instead.`])}
     ${traps([`Orientation: "outward" or "upward" decides the sign of the flux. If r<sub>u</sub> × r<sub>v</sub> points the wrong way, use r<sub>v</sub> × r<sub>u</sub>.`])}
     ${checks([[`Area of the paraboloid ${M("z = x² + y²")} below z = 1?`, `∫₀<sup>2π</sup>∫₀¹ r√(1 + 4r²) dr dθ = (π/6)(5√5 − 1) ≈ 5.33.`], [`Upward flux of ${M("⟨0, 0, 1⟩")} through the upper hemisphere of radius R?`, `F·n dS = (z/R)(R² sin φ) dφ dθ = R² cos φ sin φ: 2π · R²/2 = πR².`], [`Outward flux of ${M("⟨x, y, z⟩")} through the sphere of radius R?`, `F·n = R everywhere, so R · 4πR² = 4πR³.`]])}`;
@@ -1613,7 +1613,7 @@ const U4 = [
     ${roRow(ro("∯ F·n dS (surface, numeric)", fmt(k.flux, 4), true), ro("∭ div F dV (inside, numeric)", fmt(k.I, 4), true), ro("Volume of E", fmt(k.vol, 4)))}
     ${notice([`Arrows on the surface are F: amber leaving, blue entering.`, `⟨x, y, z⟩ has div 3, so the flux is just 3 × volume.`, `⟨−y, x, 0⟩ just swirls around: as much enters as leaves, flux 0.`, `For the half ball, the flat bottom counts too: closed surface means every face.`])}
     ${spot([`Closed surface + flux → divergence theorem (a triple integral is usually easier).`, `Surface not closed? Close it with a flat lid, use the theorem, then subtract the lid's flux.`, `If div F = constant c, flux = c × volume.`])}
-    ${traps([`Only for closed surfaces with outward orientation.`, `div F is a scalar: P<sub>x</sub> + Q<sub>y</sub> + R<sub>z</sub>.`])}
+    ${traps([`Only for closed surfaces with outward orientation, and F must be smooth everywhere inside (⟨x, y, z⟩/ρ³ fails if the origin is inside).`, `div F is a scalar: P<sub>x</sub> + Q<sub>y</sub> + R<sub>z</sub>.`])}
     ${checks([[`Outward flux of ${M("⟨x, y, z⟩")} through the sphere of radius a?`, `div = 3: 3 · (4/3)πa³ = 4πa³.`], [`Outward flux of ${M("⟨x³, y³, z³⟩")} through the unit sphere?`, `∭ 3ρ² dV = 3 ∫₀<sup>2π</sup>∫₀<sup>π</sup>∫₀¹ ρ⁴ sin φ dρ dφ dθ = 3 · 4π/5 = 12π/5 ≈ 7.54.`], [`Flux of ${M("⟨0, 0, z²⟩")} out of the cube [0, 1]³?`, `∭ 2z dV = 1 (only the top face contributes: z² = 1 times area 1).`]])}`;
   },
   scene({ P }) {
