@@ -123,6 +123,9 @@ table.cp tr.best td{background:var(--green-soft)}
 .pager button span{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .pager button b{font-weight:600}
 .pager button:hover{border-color:var(--accent)}
+.disclaim{margin:6px 0 0;font-size:.84rem;color:var(--muted);max-width:70ch}
+.disclaim a,.foot a{color:var(--accent);font-weight:600;text-underline-offset:2px}
+.foot{border-top:1px solid var(--line);padding-top:14px;font-size:.82rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
 @media (max-width:1180px){.grid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:900px){
   .app{grid-template-columns:minmax(0,1fr)}
@@ -148,7 +151,7 @@ table.cp tr.best td{background:var(--green-soft)}
   </aside>
   <main class="main">
     <header class="lhead">
-      <div><div class="eyebrow" id="crumb"></div><h1 id="ltitle"></h1></div>
+      <div><div class="eyebrow" id="crumb"></div><h1 id="ltitle"></h1><p class="disclaim">Student-made study aid, not official course material, so it may contain mistakes. <a id="report" href="https://github.com/jiacode2030/multivariable-calculus/issues/new" target="_blank" rel="noopener">Report an error in this lesson</a></p></div>
       <div class="pnav"><button class="pbtn" id="prevTop" aria-label="Previous lesson">← Prev</button><button class="pbtn" id="nextTop" aria-label="Next lesson">Next →</button></div>
     </header>
     <div class="grid">
@@ -164,6 +167,7 @@ table.cp tr.best td{background:var(--green-soft)}
       <section class="card teach" id="teach" aria-live="polite"></section>
     </div>
     <nav class="pager" id="pager" aria-label="Previous and next lesson"></nav>
+    <footer class="foot"><span>Multivariable Calculus Lab is an independent, student-made study aid. It is not affiliated with Princeton University or the MAT 201 course staff, and it is not a substitute for lectures, the textbook, or office hours.</span><a id="report2" href="https://github.com/jiacode2030/multivariable-calculus/issues/new" target="_blank" rel="noopener">Report an error</a></footer>
   </main>
 </div>
 
@@ -1690,6 +1694,8 @@ const idx = () => LESSONS.findIndex(l => l.id === S.lesson);
 function renderNav() {
   const L = byId(S.lesson), U = UNITS.find(u => u.n === L.unit), i = idx(), pv = LESSONS[i - 1], nx = LESSONS[i + 1];
   $("crumb").textContent = `Unit ${U.n} · ${U.name} · Lesson ${L.n} · §${L.sec}`;
+  const rep = "https://github.com/jiacode2030/multivariable-calculus/issues/new?title=" + encodeURIComponent(`Error in ${L.n} ${L.title}`) + "&body=" + encodeURIComponent(`Lesson: ${L.n} ${L.title} (#${L.id})\n\nWhat looks wrong (quote the text or describe the picture):\n\n\nWhat you think it should say:\n`);
+  $("report").href = rep; $("report2").href = rep;
   $("ltitle").textContent = L.title; document.title = `${L.title} · Multivariable Calculus`;
   $("prevTop").disabled = !pv; $("nextTop").disabled = !nx;
   $("pager").innerHTML = (pv ? `<button data-l="${pv.id}"><span>← Previous</span><b>${pv.n} ${pv.title}</b></button>` : "") + (nx ? `<button class="nx" data-l="${nx.id}"><span>Next →</span><b>${nx.n} ${nx.title}</b></button>` : "");
