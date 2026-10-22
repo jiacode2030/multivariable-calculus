@@ -1,0 +1,35 @@
+# Multivariable Calculus Lab — notes for Claude Code
+
+Branded as general multivariable calculus; the only course reference is the sidebar subtitle ("Follows the order of Princeton MAT 201, Fall 2026").
+
+Single-file static site served by GitHub Pages. Edit `index.html` directly (the original `src/` + `build.py` split is not in this repo). It must stay a full HTML document (doctype, charset, viewport, robots noindex).
+
+## Layout of index.html
+head (title, CSS) → markup → one `<script>` with, in order: engine (helpers, PRESETS, View3D), Map2D + teaching helpers, core state, lesson arrays U1–U4, main (nav, controls, refresh).
+Syntax check: extract the `<script>` body and run `node --check` on it.
+
+## Rules
+- Course-generic: no semester dates, weeks, PSET numbers or exam schedules in the content.
+- No external JS libraries (everything is hand-written canvas). Only Google Fonts.
+- Light theme only, IBM Plex Sans / STIX Two Text / IBM Plex Mono.
+- All math must be verified numerically before shipping (the check-yourself answers are exact; readouts are computed live).
+
+## Architecture
+- `engine_old.js`: helpers (clamp, fmt, compile = safe f(x,y) parser), function PRESETS, numeric derivatives, critical points, quadric classifier, `View3D` (painter's-algorithm 3D renderer: meshes, quads, lines, points), `heat`, `marching` (level curves).
+- `engine2.js`: `Map2D` (2D view with bounds, heat grid or `shade(x,y)`, polys, levels, curves, arrows, spins, points, texts, pickable), simpson/integrate2, vector helpers, teaching HTML helpers (head, notice, spot, traps, checks, ro, roRow, M), colors C / CRGB.
+- `core.js`: state `S`, `current()` preset, `sample()`, surfaceMesh/surfaceCurve/fnScene, paramMesh, arrow3, polyQuad, boxQuads.
+- `lessons_uN.js`: arrays U1–U4 of lesson objects.
+- `main.js`: UNITS, sidebar outline + search, prev/next pager and ← → keys, Reset, declarative controls, refresh.
+
+## Lesson object
+```
+{ id, sec, title, fn?, defaults: {...},
+  controls(P, ctx) -> [{t:"fn"} | {t:"range",k,label,min,max,step,d?,u?} | {t:"seg",k,label,opts:[[v,label]],wide?} | {t:"acts",label,acts:[[name,label]]} | {t:"text",k,label,show?}],
+  teach({L,P,F,f,smp}) -> HTML,
+  scene({P,F,f,smp,L}) -> { s3|null, s2|null, s2b?, legend:[[label,color]], v1Lbl?, v2Lbl?, v2Hint? },
+  pick?(x,y,P), act?(name,P,ctx), onSeg?(P), onOpen?(P,ctx) }
+```
+`s3` → 3D canvas; `s2` → right 2D map; `s2b` replaces the 3D canvas with a second 2D map (used by the Jacobian lesson). Null views are hidden.
+
+## Testing
+Open every lesson with Playwright, click every option, and check for JS errors; verify any new math numerically.
