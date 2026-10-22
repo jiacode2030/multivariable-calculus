@@ -33,7 +33,7 @@ A lesson with `page: true` (the formula sheet) hides the figure panel and render
 `s3` → 3D canvas; `s2` → right 2D map; `s2b` replaces the 3D canvas with a second 2D map (used by the Jacobian lesson). Null views are hidden.
 
 ## UI notes
-View3D: drag with inertia, pinch zoom, arrow/+/- keys, animated presets (VIEWS, setView), a short intro turn on lesson open, axis compass (gizmo). Every range slider has a play button (startPlay/stopPlay) and a filled track (--p). All motion respects prefers-reduced-motion (RM). Visited lessons are remembered in localStorage (per browser only).
+View3D: drag with inertia, pinch zoom, arrow/+/- keys, animated presets (VIEWS, setView), an intro on lesson open (surface rises from the floor while turning; 2D curves draw in via Map2D.prog), axis compass (gizmo). In-lesson option changes cross-fade (snapFade); 2D maps show a hover crosshair with coordinates. Every range slider has a play button (startPlay/stopPlay, eased ping-pong) and a filled track (--p). All motion respects prefers-reduced-motion (RM). Visited lessons are remembered in localStorage (per browser only).
 Design guidance: the ui-ux-pro-max skill is installed in `.claude/skills/ui-ux-pro-max` (from github.com/nextlevelbuilder/ui-ux-pro-max-skill, MIT); use its UX rules, not its auto-picked visual style (the repo's light theme and fonts stay).
 
 ## claude.ai copy

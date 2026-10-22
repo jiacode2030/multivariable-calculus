@@ -183,6 +183,11 @@ body{background:radial-gradient(1100px 480px at 75% -12%,#E6EEFA 0%,rgba(230,238
 .vtools button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
 .view .hint{transition:opacity .4s ease}
 .view.touched .hint{opacity:0}
+.view .snap{position:absolute;pointer-events:none;transition:opacity .38s cubic-bezier(.4,0,.2,1)}
+.view #c2d,.view #c2b{cursor:crosshair}
+@keyframes drop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.side.open .toc{animation:drop .22s var(--ease)}
+.ro .v{transition:color .3s ease}
 .view:has(.vtools:not([hidden])) .hint{bottom:48px}
 body.wide .grid{grid-template-columns:minmax(0,1fr)}
 body.wide .views{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
@@ -451,7 +456,7 @@ class View3D {
     });
     new ResizeObserver(() => this.resize()).observe(canvas);
   }
-  stop() { cancelAnimationFrame(this.anim); this.anim = 0; }
+  stop() { cancelAnimationFrame(this.anim); this.anim = 0; if (this.rise !== 1) { this.rise = 1; this.draw(); } }
   coast() {
     const step = () => { this.vel *= 0.93; this.vel2 *= 0.93; this.az += this.vel; this.el = clamp(this.el + this.vel2, -0.2, 1.55); this.draw(); this.anim = Math.abs(this.vel) + Math.abs(this.vel2) > 0.0006 ? requestAnimationFrame(step) : 0; };
     this.anim = requestAnimationFrame(step);
@@ -463,9 +468,14 @@ class View3D {
     const step = now => { const t = Math.min(1, (now - t0) / ms), k = ease(t); this.az = a0 + da * k; this.el = e0 + (el - e0) * k; this.zoom = z0 + (zoom - z0) * k; this.draw(); this.anim = t < 1 ? requestAnimationFrame(step) : 0; };
     this.anim = requestAnimationFrame(step);
   }
-  intro() { if (RM) return; const az = this.az; this.az = az + 0.55; this.setView(az, this.el, this.zoom, 1000); }
+  intro() {
+    if (RM) return; this.stop(); const az = this.az, a0 = az + 0.6, t0 = performance.now(), ms = 1100, ease = t => 1 - (1 - t) ** 3;
+    const step = now => { const t = Math.min(1, (now - t0) / ms); this.az = a0 + (az - a0) * ease(t); this.rise = Math.max(0.02, t * t * (3 - 2 * t)); this.draw(); if (t < 1) this.anim = requestAnimationFrame(step); else { this.anim = 0; this.rise = 1; this.draw(); } };
+    this.rise = 0.02; this.anim = requestAnimationFrame(step);
+  }
   resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(document.body.classList.contains("wide") ? 660 : 480, w * 0.82)); const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
   proj([x, y, z]) {
+    if (this.rise !== undefined && this.rise !== 1) { const zf = -((this.scene && this.scene.zBox) || 0.75); if (z > zf - 1e-9) z = zf + (z - zf) * this.rise; }
     const ca = Math.cos(this.az), sa = Math.sin(this.az), ce = Math.cos(this.el), se = Math.sin(this.el);
     const x1 = x * ca - y * sa, y1 = x * sa + y * ca;
     const d = -y1 * ce + z * se, sx = x1, sy = y1 * se + z * ce;
@@ -582,11 +592,18 @@ class Map2D {
     let down = false;
     const pick = e => { const r = this.c.getBoundingClientRect(); const [x, y] = this.toWorld(e.clientX - r.left, e.clientY - r.top); this.onPick && this.onPick(x, y); };
     canvas.addEventListener("pointerdown", e => { if (!this.scene || !this.scene.pickable) return; down = true; canvas.setPointerCapture(e.pointerId); pick(e); });
-    canvas.addEventListener("pointermove", e => { if (down) pick(e); });
+    canvas.addEventListener("pointermove", e => { if (down) pick(e); if (e.pointerType === "mouse" && this.scene) { const r = this.c.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, b = this.box; this.hover = px >= b.bx && px <= b.bx + b.w && py >= b.by && py <= b.by + b.h ? [px, py] : null; if (!down) this.draw(); } });
+    canvas.addEventListener("pointerleave", () => { if (this.hover) { this.hover = null; this.draw(); } });
     const end = () => down = false; canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+    this.prog = 1; this.anim = 0;
     new ResizeObserver(() => this.resize()).observe(canvas);
   }
   resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(document.body.classList.contains("wide") ? 660 : 480, w * 0.82)); if (!w) return; const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
+  intro() {
+    if (RM) return; cancelAnimationFrame(this.anim); const t0 = performance.now(), ms = 750;
+    const step = now => { const t = Math.min(1, (now - t0) / ms); this.prog = 1 - (1 - t) ** 3; this.draw(); this.anim = t < 1 ? requestAnimationFrame(step) : 0; };
+    this.prog = 0; this.anim = requestAnimationFrame(step);
+  }
   get bounds() { const sc = this.scene; return sc.bounds || [-sc.L, sc.L, -sc.L, sc.L]; }
   get box() {
     const [x0, x1, y0, y1] = this.bounds, padX = 34, padY = 26;
@@ -622,6 +639,7 @@ class Map2D {
     g.textAlign = "center"; g.fillText(sc.xLabel || "x", b.bx + b.w + 12, b.by + b.h + 14); g.fillText(sc.yLabel || "y", b.bx - 6, b.by - 8);
     g.save(); g.beginPath(); g.rect(b.bx, b.by, b.w, b.h); g.clip();
     const path = pts => { g.beginPath(); pts.forEach((p, i) => { const q = this.toPx(p[0], p[1]); i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1]); }); };
+    const PR = this.prog ?? 1; g.globalAlpha = PR;
     for (const pg of sc.polys || []) { path(pg.pts); if (pg.close !== false) g.closePath(); if (pg.fill) { g.fillStyle = pg.fill; g.fill(); } if (pg.stroke) { g.strokeStyle = pg.stroke; g.lineWidth = pg.width || 1.5; g.setLineDash(pg.dash || []); g.stroke(); g.setLineDash([]); } }
     for (const lv of sc.levels || []) {
       const segs = marching(sc.grid, sc.N, sc.L, lv.v);
@@ -633,14 +651,14 @@ class Map2D {
       g.strokeStyle = cv.color; g.lineWidth = cv.width || 2.5; g.setLineDash(cv.dash || []); g.lineJoin = "round"; g.lineCap = "round";
       if (cv.segs) { g.beginPath(); cv.segs.forEach(([p, q]) => { const a = this.toPx(...p), c = this.toPx(...q); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); }); g.stroke(); }
       else if (cv.colors) { for (let i = 0; i < cv.pts.length - 1; i++) { const a = this.toPx(...cv.pts[i]), c = this.toPx(...cv.pts[i + 1]); g.strokeStyle = cv.colors[i]; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); g.stroke(); } }
-      else { path(cv.pts); g.stroke(); }
+      else { path(PR < 1 ? cv.pts.slice(0, Math.max(2, Math.ceil(cv.pts.length * PR))) : cv.pts); g.stroke(); }
       g.setLineDash([]);
       if (cv.arrows) { const n = cv.pts.length; for (const f of cv.arrows) { const i = Math.max(1, Math.min(n - 1, Math.round(f * (n - 1)))); arrowHead(g, this.toPx(...cv.pts[i - 1]), this.toPx(...cv.pts[i]), cv.arrowColor || cv.color, 11); } }
     }
     for (const ar of sc.arrows || []) {
       const a = this.toPx(...ar.from), c = this.toPx(...ar.to);
-      g.strokeStyle = ar.color; g.lineWidth = ar.width || 3; g.globalAlpha = ar.alpha ?? 1; g.setLineDash(ar.dash || []); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); g.stroke(); g.setLineDash([]);
-      if (Math.hypot(c[0] - a[0], c[1] - a[1]) > 2) arrowHead(g, a, c, ar.color, ar.head || 11); g.globalAlpha = 1;
+      g.strokeStyle = ar.color; g.lineWidth = ar.width || 3; g.globalAlpha = (ar.alpha ?? 1) * PR; g.setLineDash(ar.dash || []); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); g.stroke(); g.setLineDash([]);
+      if (Math.hypot(c[0] - a[0], c[1] - a[1]) > 2) arrowHead(g, a, c, ar.color, ar.head || 11); g.globalAlpha = PR;
       if (ar.label) { g.font = "600 13px STIX Two Text, serif"; g.fillStyle = ar.color; g.textAlign = "left"; g.fillText(ar.label, c[0] + 6, c[1] + (ar.labelDy ?? -6)); }
     }
     for (const sp of sc.spins || []) { // little rotation glyphs (curl)
@@ -650,14 +668,20 @@ class Map2D {
       const tx = px + R * Math.cos(e), ty = py + R * Math.sin(e), tdx = ccw ? Math.sin(e) : -Math.sin(e), tdy = ccw ? -Math.cos(e) : Math.cos(e);
       arrowHead(g, [tx - tdx * 6, ty - tdy * 6], [tx, ty], sp.color, 8);
     }
-    g.restore();
+    g.restore(); g.globalAlpha = PR;
     for (const pt of sc.points || []) {
       const [px, py] = this.toPx(pt.x, pt.y); g.beginPath(); g.arc(px, py, pt.r || 6, 0, 7); g.fillStyle = pt.color; g.fill(); g.lineWidth = 2; g.strokeStyle = "#fff"; g.stroke();
       if (pt.ring) { g.beginPath(); g.arc(px, py, (pt.r || 6) + 4, 0, 7); g.strokeStyle = pt.ring; g.lineWidth = 2.5; g.stroke(); }
       if (pt.label) { g.font = "600 12px IBM Plex Sans, system-ui"; g.fillStyle = "#18202B"; g.textAlign = "left"; g.fillText(pt.label, px + 9, py + (pt.labelDy ?? -8)); }
     }
     for (const tx of sc.texts || []) { const [px, py] = this.toPx(tx.x, tx.y); g.font = tx.font || "600 12.5px STIX Two Text, serif"; g.fillStyle = tx.color || "#18202B"; g.textAlign = tx.align || "center"; g.fillText(tx.text, px + (tx.dx || 0), py + (tx.dy || 0)); }
-    g.textAlign = "start";
+    g.textAlign = "start"; g.globalAlpha = 1;
+    if (this.hover) {
+      const [hx, hy] = this.hover, b = this.box, [wx, wy] = this.toWorld(hx, hy), t = `${sc.xLabel || "x"} = ${fmt(wx, 2)}, ${sc.yLabel || "y"} = ${fmt(wy, 2)}`;
+      g.save(); g.strokeStyle = "rgba(24,32,43,.22)"; g.lineWidth = 1; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(hx, b.by); g.lineTo(hx, b.by + b.h); g.moveTo(b.bx, hy); g.lineTo(b.bx + b.w, hy); g.stroke(); g.setLineDash([]);
+      g.font = "600 11.5px IBM Plex Mono, monospace"; const w = g.measureText(t).width + 12, tx = Math.min(hx + 12, this.W - w - 4), ty = Math.max(hy - 26, 4);
+      g.fillStyle = "rgba(24,32,43,.86)"; g.beginPath(); g.roundRect ? g.roundRect(tx, ty, w, 20, 6) : g.rect(tx, ty, w, 20); g.fill(); g.fillStyle = "#fff"; g.textAlign = "left"; g.fillText(t, tx + 6, ty + 14); g.restore();
+    }
   }
 }
 
@@ -2157,6 +2181,7 @@ function open(id) {
   renderNav(); refresh(true);
   const gEl = document.querySelector(".grid"); gEl.classList.remove("enter"); void gEl.offsetWidth; gEl.classList.add("enter");
   $("v1").classList.remove("touched"); if (!$("v1").hidden && !$("c3d").hidden) v3.intro();
+  if (!$("v2").hidden) m2.intro(); if (!$("v1").hidden && !$("c2b").hidden) m2b.intro();
   if (document.querySelector(".lhead").getBoundingClientRect().top < 0) window.scrollTo(0, 0);
 }
 
@@ -2200,11 +2225,10 @@ const PLAY = { i: -1, raf: 0, dir: 1, v: 0 };
 function stopPlay() { cancelAnimationFrame(PLAY.raf); PLAY.raf = 0; PLAY.i = -1; document.querySelectorAll("#controls .play").forEach(b => { b.setAttribute("aria-pressed", "false"); b.innerHTML = ICON.play; }); }
 function startPlay(i) {
   stopPlay(); const c = ctlList()[i], btn = document.querySelector(`#controls .play[data-play="${i}"]`); if (!c || !btn) return;
-  PLAY.i = i; PLAY.v = +P()[c.k]; PLAY.dir = PLAY.v >= c.max ? -1 : 1; btn.setAttribute("aria-pressed", "true"); btn.innerHTML = ICON.pause;
+  PLAY.i = i; PLAY.ph = Math.acos(clamp(1 - 2 * (+P()[c.k] - c.min) / ((c.max - c.min) || 1), -1, 1)); btn.setAttribute("aria-pressed", "true"); btn.innerHTML = ICON.pause;
   let t0 = performance.now(); const span = c.max - c.min, dur = 6000;
   const step = now => {
-    const p = P(), dt = Math.min(50, now - t0); t0 = now; PLAY.v += PLAY.dir * span * dt / dur;
-    if (PLAY.v >= c.max) { PLAY.v = c.max; PLAY.dir = -1; } if (PLAY.v <= c.min) { PLAY.v = c.min; PLAY.dir = 1; }
+    const p = P(), dt = Math.min(50, now - t0); t0 = now; PLAY.ph += Math.PI * dt / dur; PLAY.v = c.min + span * (1 - Math.cos(PLAY.ph)) / 2;
     p[c.k] = c.step >= 1 ? Math.round(PLAY.v) : PLAY.v; syncControls(); refresh(false); PLAY.raf = requestAnimationFrame(step);
   };
   PLAY.raf = requestAnimationFrame(step);
@@ -2270,8 +2294,20 @@ $("vtools").addEventListener("click", e => {
   if (v === "big") { const on = document.body.classList.toggle("wide"); b.setAttribute("aria-pressed", on); b.textContent = on ? "Shrink" : "Enlarge"; requestAnimationFrame(() => { v3.resize(); m2.resize(); if (!$("c2b").hidden) m2b.resize(); }); return; }
   v3.setView(...VIEWS[v], v === "iso" ? 1 : v3.zoom);
 });
+let drawnLesson = null;
+function snapFade() {
+  if (RM) return;
+  for (const id of ["c3d", "c2b", "c2d"]) {
+    const cv = $(id); if (cv.hidden || !cv.width || cv.closest("[hidden]")) continue;
+    const o = document.createElement("canvas"); o.width = cv.width; o.height = cv.height; o.getContext("2d").drawImage(cv, 0, 0); o.className = "snap";
+    Object.assign(o.style, { left: cv.offsetLeft + "px", top: cv.offsetTop + "px", width: cv.clientWidth + "px", height: cv.clientHeight + "px" });
+    cv.parentElement.appendChild(o); requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = "0"; })); setTimeout(() => o.remove(), 420);
+  }
+}
 function refresh(rebuild = true) {
   const L = byId(S.lesson), p = P(), c = ctx();
+  if (rebuild && drawnLesson === L.id) snapFade();
+  drawnLesson = L.id;
   if (rebuild) { stopPlay(); $("controls").innerHTML = controlsHTML(); }
   $("vis").hidden = !!L.page; document.querySelector(".grid").classList.toggle("pagemode", !!L.page);
   let res;
