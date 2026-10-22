@@ -127,6 +127,19 @@ table.cp tr.best td{background:var(--green-soft)}
 .disclaim a,.foot a{color:var(--accent);font-weight:600;text-underline-offset:2px}
 .foot{border-top:1px solid var(--line);padding-top:14px;font-size:.82rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
 @media (max-width:1180px){.grid{grid-template-columns:minmax(0,1fr)}}
+.grid.pagemode{grid-template-columns:minmax(0,1fr)}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--accent)}
+.chip:hover{border-color:var(--accent)}
+.ffind{margin:0;max-width:380px;width:100%}
+.fsec{display:flex;flex-direction:column;gap:10px}
+.fhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.fhead h3{margin:0;font-size:1.05rem}
+.fgo{display:flex;flex-wrap:wrap;gap:6px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px;margin:0}
+.fi{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--soft);min-width:0}
+.fi dt{font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.fi dd{margin:0;font-family:var(--math);font-size:1.02rem;line-height:1.5;overflow-wrap:anywhere}
+.fnone{color:var(--muted)}
 @media (max-width:900px){
   .app{grid-template-columns:minmax(0,1fr)}
   .side{position:sticky;top:0;height:auto;max-height:100vh;z-index:5;border-right:0;border-bottom:1px solid var(--line);padding-left:max(0px, env(safe-area-inset-left, 0px));padding-right:max(0px, env(safe-area-inset-right, 0px))}
@@ -155,7 +168,7 @@ table.cp tr.best td{background:var(--green-soft)}
       <div class="pnav"><button class="pbtn" id="prevTop" aria-label="Previous lesson">← Prev</button><button class="pbtn" id="nextTop" aria-label="Next lesson">Next →</button></div>
     </header>
     <div class="grid">
-      <section class="card vis" aria-label="Interactive figure">
+      <section class="card vis" id="vis" aria-label="Interactive figure">
         <div class="views">
           <div class="view" id="v1"><span class="lbl" id="v1Lbl">3D view</span><canvas id="c3d" aria-label="3D view, drag to rotate"></canvas><canvas id="c2b" hidden aria-label="Second 2D view"></canvas><span class="hint" id="v1Hint">Drag to rotate · scroll to zoom</span></div>
           <div class="view" id="v2"><span class="lbl" id="v2Lbl">Top view</span><canvas id="c2d" aria-label="2D view"></canvas><span class="hint" id="v2Hint">Click or drag to move the point</span></div>
@@ -1665,16 +1678,213 @@ const U4 = [
 ];
 
 
+// =================== REVIEW (optional): single-variable tools used all course ===================
+const RD = {
+  sq: { tex: "x²", f: x => x * x, d: x => 2 * x, dtex: "2x", A: [-2, 2], B: [-2.5, 2.5, -1, 4.6], DB: [-2.5, 2.5, -4.6, 4.6] },
+  cub: { tex: "x³/3 − x", f: x => x ** 3 / 3 - x, d: x => x * x - 1, dtex: "x² − 1", A: [-2.2, 2.2], B: [-2.6, 2.6, -2, 2], DB: [-2.6, 2.6, -1.5, 4.3] },
+  sin: { tex: "sin x", f: Math.sin, d: Math.cos, dtex: "cos x", A: [-3.1, 3.1], B: [-3.6, 3.6, -1.6, 1.6], DB: [-3.6, 3.6, -1.6, 1.6] },
+  exp: { tex: "eˣ", f: Math.exp, d: Math.exp, dtex: "eˣ", A: [-2.5, 1.4], B: [-3, 2, -0.6, 4.6], DB: [-3, 2, -0.6, 4.6] },
+  ln: { tex: "ln x", f: Math.log, d: x => 1 / x, dtex: "1/x", A: [0.35, 4.5], B: [-0.4, 5, -2, 2], DB: [-0.4, 5, -0.4, 3.2] }
+};
+const RI = {
+  sq: { tex: "x²", f: x => x * x, F: x => x ** 3 / 3, Ftex: "x³/3", X: 2, B: [-0.25, 2.25, -0.4, 4.2] },
+  lin: { tex: "2 − x", f: x => 2 - x, F: x => 2 * x - x * x / 2, Ftex: "2x − x²/2", X: 4, B: [-0.3, 4.3, -2.3, 2.3] },
+  sin: { tex: "sin x", f: Math.sin, F: x => -Math.cos(x), Ftex: "−cos x", X: 2 * Math.PI, B: [-0.3, 6.6, -1.3, 1.3] },
+  cos2: { tex: "cos² x", f: x => Math.cos(x) ** 2, F: x => x / 2 + Math.sin(2 * x) / 4, Ftex: "x/2 + sin(2x)/4", X: 2 * Math.PI, B: [-0.3, 6.6, -0.4, 1.3] }
+};
+const RP = {
+  circ: { tex: "r = 2 cos θ", r: t => 2 * Math.cos(t), T: Math.PI, area: Math.PI, atex: "π (a circle of radius 1)" },
+  card: { tex: "r = 1 + cos θ", r: t => 1 + Math.cos(t), T: 2 * Math.PI, area: 1.5 * Math.PI, atex: "3π/2" },
+  rose: { tex: "r = cos 2θ", r: t => Math.cos(2 * t), T: 2 * Math.PI, area: Math.PI / 2, atex: "π/2 (all four petals)" },
+  spir: { tex: "r = θ/π", r: t => t / Math.PI, T: 2 * Math.PI, area: 4 * Math.PI / 3, atex: "4π/3" }
+};
+
+const U0 = [
+{
+  id: "rderiv", sec: "Ch. 3", title: "Derivatives refresher", defaults: { fn: "sq", a: 1, h: 1 },
+  controls(P) { const F = RD[P.fn]; return [{ t: "seg", k: "fn", label: "Function f(x)", opts: Object.entries(RD).map(([k, v]) => [k, v.tex]) }, { t: "range", k: "a", label: "Point a", min: F.A[0], max: F.A[1], step: 0.01 }, { t: "range", k: "h", label: "Step h for the secant", min: -1.5, max: 1.5, step: 0.01 }]; },
+  onSeg(P, k) { if (k === "fn") { const F = RD[P.fn]; P.a = clamp(P.fn === "ln" ? 1 : P.a, F.A[0], F.A[1]); } },
+  pick(x, y, P) { const F = RD[P.fn]; P.a = +clamp(x, F.A[0], F.A[1]).toFixed(2); },
+  calc(P) { const F = RD[P.fn], a = clamp(P.a, F.A[0], F.A[1]); let h = Math.abs(P.h) < 0.005 ? 0.005 : P.h; if (!isFinite(F.f(a + h))) h = 0.05 - a; const fa = F.f(a), fb = F.f(a + h); return { F, a, h, fa, fb, m: (fb - fa) / h, d: F.d(a) }; },
+  teach({ L, P }) {
+    const k = this.calc(P);
+    return `${head(L, "The derivative is the slope of the tangent line")}
+    <p class="big">The secant through ${M("(a, f(a))")} and ${M("(a + h, f(a + h))")} has slope ${M("[f(a + h) − f(a)] / h")}. As ${M("h → 0")} the secant turns into the tangent line, and its slope is ${M("f′(a)")}. Every partial derivative later in the course is this same idea, taken along one direction.</p>
+    ${roRow(ro("f(x)", M(k.F.tex)), ro("f′(x)", M(k.F.dtex)), ro("f(a)", fmt(k.fa, 3)))}
+    ${roRow(ro(`Secant slope (h = ${fmt(k.h)})`, fmt(k.m, 4)), ro("Tangent slope f′(a)", fmt(k.d, 4), true), ro("Difference", fmt(k.m - k.d, 4)))}
+    ${notice([`Drag h toward 0: the amber secant swings onto the blue tangent, and the two slopes agree.`, `The right graph plots the slope at every point. Where f′ > 0, f is increasing; where f′ < 0, f is decreasing.`, `At a local max or min of a differentiable f, the tangent is flat: f′(a) = 0. (The converse is false: x³ has f′(0) = 0 but no max or min there.)`])}
+    ${spot([`Power: (xⁿ)′ = n xⁿ⁻¹. Exponential and log: (eˣ)′ = eˣ, (ln x)′ = 1/x for x > 0.`, `Trig: (sin x)′ = cos x, (cos x)′ = −sin x, (tan x)′ = sec² x. Inverse trig: (arctan x)′ = 1/(1 + x²), (arcsin x)′ = 1/√(1 − x²).`, `Product: (fg)′ = f′g + fg′. Quotient: (f/g)′ = (f′g − fg′)/g².`, `Chain: [f(g(x))]′ = f′(g(x)) · g′(x). The multivariable chain rule is this with one term per variable.`, `Tangent line at a: y = f(a) + f′(a)(x − a). The tangent plane is the same formula with a term for each variable.`], "Rules you will use all course")}
+    ${traps([`Chain rule: don't drop the inside derivative, e.g. (sin 3x)′ = 3 cos 3x.`, `(fg)′ is not f′g′, and (f/g)′ is not f′/g′.`])}
+    ${checks([[`d/dx [x² sin x]?`, `Product rule: 2x sin x + x² cos x.`], [`d/dx e<sup>3x²</sup>?`, `Chain rule: 6x e<sup>3x²</sup>.`], [`d/dx arctan(2x)?`, `Chain rule: 2/(1 + 4x²).`], [`d/dx [(ln x)/x]?`, `Quotient rule: [(1/x)·x − ln x]/x² = (1 − ln x)/x².`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), F = k.F, [x0, x1, y0, y1] = F.B, inB = (x, y, B) => x >= B[0] && x <= B[1] && y >= B[2] && y <= B[3];
+    const line = m => [[x0, k.fa + m * (x0 - k.a)], [x1, k.fa + m * (x1 - k.a)]];
+    const fpts = range(320, x0, x1).filter(x => isFinite(F.f(x))).map(x => [x, F.f(x)]).filter(p => p[1] > y0 - 20);
+    const s2b = { bounds: F.B, tick: 1, curves: [{ pts: [[k.a, y0], [k.a, y1]], color: "rgba(90,102,118,.35)", width: 1, dash: [3, 4] }, { pts: fpts, color: C.ink, width: 2.6 }, { pts: line(k.m), color: C.amber, width: 2.2, dash: [7, 5] }, { pts: line(k.d), color: C.blue, width: 2.6 }], points: [], pickable: false };
+    if (inB(k.a + k.h, k.fb, F.B)) s2b.points.push({ x: k.a + k.h, y: k.fb, color: C.amber, r: 5, label: "a + h" });
+    s2b.points.push({ x: k.a, y: k.fa, color: C.blue, label: "a" });
+    const DB = F.DB, dpts = range(320, DB[0], DB[1]).filter(x => isFinite(F.f(x))).map(x => [x, F.d(x)]).filter(p => p[1] < DB[3] + 20);
+    const s2 = { bounds: DB, tick: 1, curves: [{ pts: [[k.a, DB[2]], [k.a, DB[3]]], color: "rgba(90,102,118,.35)", width: 1, dash: [3, 4] }, { pts: dpts, color: C.green, width: 2.6 }], points: [{ x: k.a, y: k.d, color: C.blue, label: `f′(a) = ${fmt(k.d, 2)}` }], pickable: true, yLabel: "f′" };
+    return { s3: null, s2b, s2, legend: [["y = f(x)", C.ink], ["Secant", C.amber], ["Tangent (slope f′(a))", C.blue], ["Slope graph f′(x)", C.green]], v1Lbl: "y = f(x): secant and tangent", v2Lbl: "Slope graph y = f′(x)", v2Hint: "Click to move a" };
+  }
+},
+{
+  id: "rint", sec: "Ch. 5, 8", title: "Integration refresher", defaults: { fn: "sq", a: 0, b: 2, n: 6, rule: "mid" },
+  controls(P) { const F = RI[P.fn]; return [{ t: "seg", k: "fn", label: "Function f(x)", opts: Object.entries(RI).map(([k, v]) => [k, v.tex]) }, { t: "range", k: "a", label: "Lower limit a", min: 0, max: F.X, step: 0.01 }, { t: "range", k: "b", label: "Upper limit b", min: 0, max: F.X, step: 0.01 }, { t: "range", k: "n", label: "Rectangles n", min: 1, max: 40, step: 1, d: 0 }, { t: "seg", k: "rule", label: "Height taken at", opts: [["left", "Left end"], ["mid", "Midpoint"], ["right", "Right end"]] }]; },
+  onSeg(P, k) { if (k === "fn") { P.a = 0; P.b = RI[P.fn].X; } },
+  calc(P) {
+    const F = RI[P.fn], lo = clamp(Math.min(P.a, P.b), 0, F.X), hi = clamp(Math.max(P.a, P.b), 0, F.X), n = P.n, dx = (hi - lo) / n, off = P.rule === "mid" ? 0.5 : P.rule === "left" ? 0 : 1, cells = [];
+    let sum = 0; for (let i = 0; i < n; i++) { const sx = lo + (i + off) * dx, h = F.f(sx); sum += h * dx; cells.push({ xa: lo + i * dx, xb: lo + (i + 1) * dx, sx, h }); }
+    return { F, lo, hi, dx, sum, exact: F.F(hi) - F.F(lo), cells };
+  },
+  teach({ L, P }) {
+    const k = this.calc(P);
+    return `${head(L, "An integral adds up thin rectangles; an antiderivative does it exactly")}
+    <p class="big">${M("∫ₐᵇ f(x) dx")} is the limit of Riemann sums ${M("Σ f(xᵢ*) Δx")}: signed area, with area below the axis counting as negative. The <b>Fundamental Theorem of Calculus</b> says that if ${M("F′ = f")} (f continuous), then ${M("∫ₐᵇ f(x) dx = F(b) − F(a)")}, and the accumulated area ${M("A(x) = ∫ₐˣ f(t) dt")} has ${M("A′(x) = f(x)")}.</p>
+    <div class="setup">${M(`∫<sub>${fmt(k.lo)}</sub><sup>${fmt(k.hi)}</sup> ${k.F.tex} dx = [${k.F.Ftex}]<sub>${fmt(k.lo)}</sub><sup>${fmt(k.hi)}</sup> = ${fmt(k.exact, 4)}`)}</div>
+    ${roRow(ro(`Riemann sum (n = ${P.n})`, fmt(k.sum, 4)), ro("Exact F(b) − F(a)", fmt(k.exact, 4), true), ro("Error", fmt(k.exact - k.sum, 4)), ro("Δx", fmt(k.dx, 4)))}
+    ${notice([`Raise n: the rectangles hug the curve and the sum closes in on the exact value. Midpoints usually get there fastest.`, `Rectangles below the axis (blue) subtract. Try sin x from 0 to 2π: the total is 0.`, `The right graph is A(x). It climbs where f > 0, falls where f < 0, and is flat where f = 0: its slope is f. That's the Fundamental Theorem.`, `cos² x from 0 to 2π gives exactly π. You'll meet this integral again in polar and spherical coordinates.`])}
+    ${spot([`u-substitution: look for an inside function u and its derivative du, e.g. ∫ 2x e<sup>x²</sup> dx with u = x². Change the limits too (or switch back to x before plugging in).`, `By parts: ∫ u dv = uv − ∫ v du. Choose u to get simpler when differentiated (polynomials, ln x).`, `Powers of sin and cos: sin² x = (1 − cos 2x)/2, cos² x = (1 + cos 2x)/2, sin x cos x = ½ sin 2x.`, `√(a² − x²): try x = a sin θ, or switch to polar if the region is a disk.`, `Symmetry: an odd function integrated over [−c, c] gives 0.`], "Techniques you will need")}
+    ${traps([`With a substitution, change the limits before evaluating, or substitute back first. Don't mix the two.`, `∫ f g dx is not (∫ f dx)(∫ g dx). (It does split for a product g(x)h(y) in a double integral over a rectangle.)`])}
+    ${checks([[`∫ x eˣ dx?`, `By parts with u = x, dv = eˣ dx: x eˣ − ∫ eˣ dx = (x − 1)eˣ + C.`], [`∫₀<sup>π</sup> sin²θ dθ?`, `∫₀<sup>π</sup> (1 − cos 2θ)/2 dθ = π/2.`], [`∫₀¹ 2x e<sup>x²</sup> dx?`, `u = x², du = 2x dx: ∫₀¹ eᵘ du = e − 1 ≈ 1.718.`], [`∫₀<sup>2π</sup> cos²θ dθ?`, `∫₀<sup>2π</sup> (1 + cos 2θ)/2 dθ = π.`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), F = k.F, xs = range(320, 0, F.X);
+    const s2b = { bounds: F.B, tick: F.X > 4 ? 1 : 0.5, polys: [{ pts: [[k.lo, 0], ...range(160, k.lo, k.hi).map(x => [x, F.f(x)]), [k.hi, 0]], fill: "rgba(30,140,140,.14)" }], curves: [], points: [], pickable: false };
+    k.cells.forEach(c => s2b.polys.push({ pts: [[c.xa, 0], [c.xb, 0], [c.xb, c.h], [c.xa, c.h]], fill: c.h >= 0 ? "rgba(217,130,43,.38)" : "rgba(36,87,166,.38)", stroke: "rgba(24,32,43,.5)", width: 1 }));
+    s2b.curves.push({ pts: xs.map(x => [x, F.f(x)]), color: C.ink, width: 2.6 });
+    if (P.n <= 20) k.cells.forEach(c => s2b.points.push({ x: c.sx, y: c.h, color: C.ink, r: 3 }));
+    const A = x => F.F(x) - F.F(k.lo), as = xs.map(x => [x, A(x)]), lo = Math.min(0, ...as.map(p => p[1])), hi = Math.max(0, ...as.map(p => p[1])), pad = 0.15 * Math.max(1, hi - lo);
+    const s2 = { bounds: [F.B[0], F.B[1], lo - pad, hi + pad], curves: [{ pts: as, color: C.green, width: 2.6 }, { pts: [[k.hi, 0], [k.hi, A(k.hi)]], color: C.green, width: 2, dash: [4, 3] }], points: [{ x: k.lo, y: 0, color: C.gray, r: 4, label: "a" }, { x: k.hi, y: A(k.hi), color: C.green, label: `A(b) = ${fmt(A(k.hi), 3)}` }], pickable: false, yLabel: "A" };
+    return { s3: null, s2b, s2, legend: [["Rectangles adding", C.amber], ["Rectangles subtracting", C.blue], ["Exact signed area", C.teal], ["A(x) = ∫ₐˣ f(t) dt", C.green]], v1Lbl: "Riemann sum under y = f(x)", v2Lbl: "Accumulated area A(x)" };
+  }
+},
+{
+  id: "rpolar", sec: "11.3–11.5", title: "Polar coordinates refresher", defaults: { c: "card", th: 120, fan: 1 },
+  controls(P) { const C0 = RP[P.c]; return [{ t: "seg", k: "c", label: "Curve", opts: Object.entries(RP).map(([k, v]) => [k, v.tex]) }, { t: "range", k: "th", label: "Angle θ", min: 0, max: Math.round(C0.T * 180 / Math.PI), step: 1, d: 0, u: "°" }, { t: "seg", k: "fan", label: "Swept area", opts: [[1, "Show"], [0, "Hide"]] }]; },
+  onSeg(P, k) { if (k === "c") P.th = Math.round(RP[P.c].T * 180 / Math.PI * 0.6); },
+  calc(P) { const C0 = RP[P.c], t = clamp(P.th, 0, C0.T * 180 / Math.PI) * Math.PI / 180, r = C0.r(t); return { C: C0, t, r, x: r * Math.cos(t), y: r * Math.sin(t), swept: t > 0 ? 0.5 * simpson(s => C0.r(s) ** 2, 0, t, 200) : 0 }; },
+  teach({ L, P }) {
+    const k = this.calc(P);
+    return `${head(L, "Polar: how far out, and in which direction")}
+    <p class="big">A point is located by its distance ${M("r")} from the origin and its angle ${M("θ")} from the positive x-axis: ${M("x = r cos θ, y = r sin θ, r² = x² + y²")}. A polar curve ${M("r = f(θ)")} is drawn by sweeping a ray around and marking the point at distance r along it. The area it sweeps out is ${M("A = ½ ∫ r² dθ")}.</p>
+    ${roRow(ro("Curve", M(k.C.tex)), ro("Point (r, θ)", `(${fmt(k.r)}, ${fmt(deg(k.t), 0)}°)`), ro("(x, y) = (r cos θ, r sin θ)", `(${fmt(k.x)}, ${fmt(k.y)})`))}
+    ${roRow(ro("Area swept so far, ½∫₀<sup>θ</sup> r² dθ", fmt(k.swept, 4), true), ro("Area of the whole curve", `${k.C.atex} ≈ ${fmt(k.C.area, 4)}`))}
+    ${notice([`When r is negative, the point lands on the opposite side of the origin from the ray. Watch the rose, and r = 2 cos θ for θ between 90° and 180°.`, `r = 2 cos θ traces its whole circle once as θ goes from 0 to π. Continuing to 2π would trace it again and double the area.`, `The left graph shows r against θ, like an ordinary graph. Where it crosses zero, the polar curve passes through the origin.`, `Each thin slice of the shaded fan is almost a wedge of area ½ r² Δθ. Double integrals in polar use the same picture with dA = r dr dθ.`])}
+    ${spot([`Convert: x = r cos θ, y = r sin θ, r² = x² + y², tan θ = y/x.`, `Recognize: r = c is a circle about the origin; θ = c is a line through the origin; r = 2a cos θ is the circle of radius |a| centered at (a, 0); r = 2a sin θ is centered at (0, a).`, `To convert r = 4 sin θ (or similar), multiply both sides by r first: r² = 4r sin θ becomes x² + y² = 4y.`, `Area between two curves: ½∫ (r<sub>outer</sub>² − r<sub>inner</sub>²) dθ between the intersection angles. Find them by setting the r's equal, and check the origin separately.`], "How to use it")}
+    ${traps([`θ = arctan(y/x) is only right when x > 0; for x < 0 add π.`, `Make sure the θ-interval traces the region exactly once, or the area will be counted twice.`])}
+    ${checks([[`Convert (−1, √3) to polar.`, `r = √(1 + 3) = 2. The point is in quadrant II, so θ = π − π/3 = 2π/3.`], [`Write r = 4 sin θ in x and y.`, `r² = 4r sin θ gives x² + y² = 4y, i.e. x² + (y − 2)² = 4: a circle of radius 2 centered at (0, 2).`], [`Area inside the cardioid r = 1 + cos θ?`, `½∫₀<sup>2π</sup> (1 + 2cos θ + cos²θ) dθ = ½(2π + 0 + π) = 3π/2.`], [`Area of one petal of r = cos 2θ?`, `One petal is −π/4 ≤ θ ≤ π/4: ½∫ cos² 2θ dθ = π/8.`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), C0 = k.C, ts = range(360, 0, C0.T), pt = t => [C0.r(t) * Math.cos(t), C0.r(t) * Math.sin(t)], tr = range(Math.max(2, Math.round(240 * k.t / C0.T)), 0, k.t).map(pt);
+    const s2 = { bounds: [-2.3, 2.3, -2.3, 2.3], tick: 0.5, curves: [], polys: [], points: [], texts: [], pickable: false };
+    if (P.fan && k.t > 0) s2.polys.push({ pts: [[0, 0], ...tr], fill: "rgba(217,130,43,.24)" });
+    for (const R of [0.5, 1, 1.5, 2]) s2.curves.push({ pts: range(120, 0, 2 * Math.PI).map(t => [R * Math.cos(t), R * Math.sin(t)]), color: "rgba(90,102,118,.22)", width: 1 });
+    for (let i = 0; i < 12; i++) { const t = i * Math.PI / 6; s2.curves.push({ pts: [[0, 0], [2.2 * Math.cos(t), 2.2 * Math.sin(t)]], color: "rgba(90,102,118,.16)", width: 1 }); }
+    s2.curves.push({ pts: ts.map(pt), color: "rgba(30,140,140,.35)", width: 2 }, { pts: tr, color: C.teal, width: 3.5 });
+    s2.curves.push({ pts: [[0, 0], [2.25 * Math.cos(k.t), 2.25 * Math.sin(k.t)]], color: C.gray, width: 1.5, dash: [5, 4] });
+    if (k.t > 0.02) { s2.curves.push({ pts: range(40, 0, k.t).map(t => [0.32 * Math.cos(t), 0.32 * Math.sin(t)]), color: C.amber, width: 2.5 }); s2.texts.push({ x: 0.5 * Math.cos(k.t / 2), y: 0.5 * Math.sin(k.t / 2), text: "θ", color: "#9A5512", dy: 4 }); }
+    s2.curves.push({ pts: [[0, 0], [k.x, k.y]], color: C.ink, width: 3 });
+    s2.points.push({ x: k.x, y: k.y, color: C.ink, label: k.r < -1e-9 ? "r < 0: opposite side" : "(r, θ)" });
+    const rs = ts.map(t => C0.r(t)), lo = Math.min(0, ...rs), hi = Math.max(0, ...rs);
+    const s2b = { bounds: [-0.3, C0.T + 0.3, lo - 0.4, hi + 0.4], tick: C0.T > 4 ? 1 : 0.5, curves: [{ pts: ts.map(t => [t, C0.r(t)]), color: "rgba(30,140,140,.45)", width: 2 }, { pts: range(160, 0, k.t).map(t => [t, C0.r(t)]), color: C.teal, width: 3.5 }, { pts: [[k.t, 0], [k.t, k.r]], color: C.ink, width: 2, dash: [4, 3] }], points: [{ x: k.t, y: k.r, color: C.ink }], pickable: false, xLabel: "θ", yLabel: "r" };
+    return { s3: null, s2b, s2, legend: [["Curve traced so far", C.teal], ["Swept area ½∫ r² dθ", C.amber], ["Ray at angle θ", C.gray]], v1Lbl: "r as a function of θ", v2Lbl: "The polar curve" };
+  }
+}
+];
+
+// =================== REFERENCE: key formulas ===================
+const FORM = [
+  { h: "Review: single-variable tools", go: [["rderiv", "Derivatives"], ["rint", "Integration"], ["rpolar", "Polar"]], items: [
+    ["Tangent line", "y = f(a) + f′(a)(x − a)"],
+    ["Product, quotient, chain rules", "(fg)′ = f′g + fg′ &nbsp;·&nbsp; (f/g)′ = (f′g − fg′)/g² &nbsp;·&nbsp; [f(g(x))]′ = f′(g(x)) g′(x)"],
+    ["Fundamental Theorem of Calculus", "f continuous, F′ = f: ∫ₐᵇ f(x) dx = F(b) − F(a), and d/dx ∫ₐˣ f(t) dt = f(x)"],
+    ["Substitution, by parts", "∫ f(g(x)) g′(x) dx = ∫ f(u) du &nbsp;·&nbsp; ∫ u dv = uv − ∫ v du"],
+    ["Half-angle identities", "sin²θ = (1 − cos 2θ)/2 &nbsp;·&nbsp; cos²θ = (1 + cos 2θ)/2 &nbsp;·&nbsp; sin θ cos θ = ½ sin 2θ"],
+    ["Polar ↔ Cartesian", "x = r cos θ, y = r sin θ, r² = x² + y², tan θ = y/x"],
+    ["Area of a polar region", "A = ½ ∫<sub>α</sub><sup>β</sup> r² dθ (θ-interval traces the region once)"]] },
+  { h: "Vectors & space", go: [["space", "Quadrics"], ["dot", "Dot product"], ["cross", "Cross product"], ["planes", "Lines & planes"]], items: [
+    ["Length, unit vector", "‖v‖ = √(v₁² + v₂² + v₃²) &nbsp;·&nbsp; u = v/‖v‖ (v ≠ 0)"],
+    ["Dot product", "a · b = a₁b₁ + a₂b₂ + a₃b₃ = ‖a‖‖b‖ cos θ; a ⟂ b ⇔ a · b = 0"],
+    ["Projection", "comp<sub>a</sub>b = (a · b)/‖a‖ &nbsp;·&nbsp; proj<sub>a</sub>b = ((a · b)/‖a‖²) a"],
+    ["Cross product", "a × b = ⟨a₂b₃ − a₃b₂, a₃b₁ − a₁b₃, a₁b₂ − a₂b₁⟩, perpendicular to a and b; ‖a × b‖ = ‖a‖‖b‖ sin θ = parallelogram area"],
+    ["Triple product", "|a · (b × c)| = volume of the parallelepiped"],
+    ["Line", "r(t) = P₀ + t v (point P₀, direction v)"],
+    ["Plane", "n · ⟨x − x₀, y − y₀, z − z₀⟩ = 0, i.e. ax + by + cz = d with normal n = ⟨a, b, c⟩"],
+    ["Distance from a point to a plane", "|ax₀ + by₀ + cz₀ − d| / √(a² + b² + c²)"],
+    ["Distance from Q to a line", "‖PQ × v‖ / ‖v‖ (P on the line, v its direction)"],
+    ["Sphere", "(x − a)² + (y − b)² + (z − c)² = r²"]] },
+  { h: "Curves in space", go: [["curves", "Curves & tangents"], ["projectile", "Projectiles & arc length"]], items: [
+    ["Velocity, speed, acceleration", "v(t) = r′(t), speed = ‖r′(t)‖, a(t) = r″(t)"],
+    ["Unit tangent", "T(t) = r′(t)/‖r′(t)‖ (r′(t) ≠ 0)"],
+    ["Tangent line at t₀", "r(t₀) + s r′(t₀)"],
+    ["Arc length", "L = ∫ₐᵇ ‖r′(t)‖ dt"],
+    ["Projectile (no air resistance)", "r(t) = ⟨(v₀ cos α) t, h₀ + (v₀ sin α) t − ½ g t²⟩"]] },
+  { h: "Functions of several variables", go: [["limits", "Limits"], ["partials", "Partials"], ["chain", "Chain rule"], ["gradient", "Gradient"], ["tangent", "Tangent planes"], ["extrema", "Critical points"], ["region", "Max/min on a region"], ["lagrange", "Lagrange"], ["taylor", "Taylor"]], items: [
+    ["Showing a limit does not exist", "if two paths to the point give different limits, the limit does not exist"],
+    ["Clairaut", "f<sub>xy</sub> = f<sub>yx</sub> when both are continuous near the point"],
+    ["Chain rule", "z = f(x(t), y(t)): dz/dt = f<sub>x</sub> x′(t) + f<sub>y</sub> y′(t) = ∇f · r′(t)"],
+    ["Implicit differentiation", "F(x, y, z) = 0: ∂z/∂x = −F<sub>x</sub>/F<sub>z</sub>, ∂z/∂y = −F<sub>y</sub>/F<sub>z</sub> (F<sub>z</sub> ≠ 0)"],
+    ["Gradient, directional derivative", "∇f = ⟨f<sub>x</sub>, f<sub>y</sub>⟩; D<sub>u</sub>f = ∇f · u for a unit vector u; the largest value is ‖∇f‖, in the direction of ∇f"],
+    ["Gradient is normal", "∇f ⟂ level curves; ∇F is normal to the level surface F = c (where ∇F ≠ 0)"],
+    ["Tangent plane to z = f(x, y)", "z − z₀ = f<sub>x</sub>(x₀, y₀)(x − x₀) + f<sub>y</sub>(x₀, y₀)(y − y₀)"],
+    ["Tangent plane to F(x, y, z) = c", "∇F(P₀) · ⟨x − x₀, y − y₀, z − z₀⟩ = 0"],
+    ["Linearization", "L(x, y) = f(a, b) + f<sub>x</sub>(a, b)(x − a) + f<sub>y</sub>(a, b)(y − b)"],
+    ["Second derivative test", "at a point with ∇f = 0, f with continuous second partials: D = f<sub>xx</sub>f<sub>yy</sub> − f<sub>xy</sub>². D > 0 and f<sub>xx</sub> > 0: local min; D > 0 and f<sub>xx</sub> < 0: local max; D < 0: saddle; D = 0: no conclusion"],
+    ["Absolute max and min", "a continuous f on a closed, bounded region has both (Extreme Value Theorem); compare f at interior critical points and on the boundary"],
+    ["Lagrange multipliers", "if f has an extreme value on g = c at a point where ∇g ≠ 0, then ∇f = λ∇g there; with two constraints (∇g, ∇h not parallel), ∇f = λ∇g + μ∇h"],
+    ["Quadratic Taylor approximation", "f(a + h, b + k) ≈ f + f<sub>x</sub>h + f<sub>y</sub>k + ½(f<sub>xx</sub>h² + 2f<sub>xy</sub>hk + f<sub>yy</sub>k²), all evaluated at (a, b)"]] },
+  { h: "Multiple integrals", go: [["double", "Double"], ["order", "Order"], ["polar", "Polar"], ["mass", "Plate mass"], ["triple", "Triple & cylindrical"], ["mass3", "Solid mass"], ["spherical", "Spherical"], ["jacobian", "Change of variables"]], items: [
+    ["Fubini on a rectangle", "∬<sub>R</sub> f dA = ∫ₐᵇ ∫<sub>c</sub><sup>d</sup> f dy dx = ∫<sub>c</sub><sup>d</sup> ∫ₐᵇ f dx dy (f continuous)"],
+    ["Area, average value", "Area(R) = ∬<sub>R</sub> 1 dA &nbsp;·&nbsp; average of f = (1/Area) ∬<sub>R</sub> f dA"],
+    ["Polar", "dA = r dr dθ, x² + y² = r²"],
+    ["Cylindrical", "x = r cos θ, y = r sin θ, z = z; dV = r dz dr dθ"],
+    ["Spherical", "x = ρ sin φ cos θ, y = ρ sin φ sin θ, z = ρ cos φ, 0 ≤ φ ≤ π; dV = ρ² sin φ dρ dφ dθ"],
+    ["Change of variables", "dA = |∂(x, y)/∂(u, v)| du dv, where ∂(x, y)/∂(u, v) = x<sub>u</sub>y<sub>v</sub> − x<sub>v</sub>y<sub>u</sub>"],
+    ["Mass, center of mass", "M = ∬ ρ dA; x̄ = (1/M)∬ x ρ dA, ȳ = (1/M)∬ y ρ dA (in 3D use dV and add z̄)"],
+    ["Moment of inertia", "I<sub>z</sub> = ∭ (x² + y²) ρ dV (squared distance to the axis)"]] },
+  { h: "Vector calculus", go: [["fields", "Fields"], ["divcurl", "Div & curl"], ["line", "Line integrals"], ["conservative", "Conservative"], ["green", "Green"], ["surface", "Surface integrals"], ["divergence", "Divergence theorem"], ["stokes", "Stokes"]], items: [
+    ["Divergence", "div F = ∇ · F = P<sub>x</sub> + Q<sub>y</sub> + R<sub>z</sub>"],
+    ["Curl", "curl F = ∇ × F = ⟨R<sub>y</sub> − Q<sub>z</sub>, P<sub>z</sub> − R<sub>x</sub>, Q<sub>x</sub> − P<sub>y</sub>⟩; in 2D, the k-component Q<sub>x</sub> − P<sub>y</sub>"],
+    ["Identities", "∇ × (∇f) = 0 and ∇ · (∇ × F) = 0 (continuous second partials)"],
+    ["Scalar line integral", "∫<sub>C</sub> f ds = ∫ₐᵇ f(r(t)) ‖r′(t)‖ dt"],
+    ["Work, circulation", "∫<sub>C</sub> F · dr = ∫ₐᵇ F(r(t)) · r′(t) dt = ∫<sub>C</sub> P dx + Q dy (+ R dz)"],
+    ["Flux across a plane curve", "∫<sub>C</sub> F · n ds = ∫<sub>C</sub> P dy − Q dx (n points right of the direction of travel: outward for a counterclockwise loop)"],
+    ["Fundamental theorem for line integrals", "if F = ∇f: ∫<sub>C</sub> F · dr = f(end) − f(start)"],
+    ["Conservative test", "F with continuous partials on a simply connected region: F conservative ⇔ curl F = 0 (in 2D: P<sub>y</sub> = Q<sub>x</sub>)"],
+    ["Green's theorem", "C a simple closed curve, counterclockwise, around D; F with continuous partials on D: ∮<sub>C</sub> P dx + Q dy = ∬<sub>D</sub> (Q<sub>x</sub> − P<sub>y</sub>) dA and ∮<sub>C</sub> F · n ds = ∬<sub>D</sub> (P<sub>x</sub> + Q<sub>y</sub>) dA"],
+    ["Area from Green's theorem", "C counterclockwise: Area(D) = ∮ x dy = −∮ y dx = ½∮ (x dy − y dx)"],
+    ["Surface area element", "dS = ‖r<sub>u</sub> × r<sub>v</sub>‖ du dv; for z = g(x, y): dS = √(1 + g<sub>x</sub>² + g<sub>y</sub>²) dA"],
+    ["Flux through a surface", "∬<sub>S</sub> F · n dS = ∬ F(r(u, v)) · (r<sub>u</sub> × r<sub>v</sub>) du dv, with r<sub>u</sub> × r<sub>v</sub> pointing the chosen way"],
+    ["Divergence theorem", "S closed, oriented outward, F with continuous partials on the solid E: ∯<sub>S</sub> F · n dS = ∭<sub>E</sub> div F dV"],
+    ["Stokes' theorem", "C oriented with n by the right-hand rule, F with continuous partials: ∮<sub>C</sub> F · dr = ∬<sub>S</sub> (curl F) · n dS"]] }
+];
+const UF = [{
+  id: "formulas", sec: "", title: "Key formulas & concepts", page: true, defaults: {},
+  teach() {
+    return `<div class="eyebrow">Reference</div><h2>The formulas used most, in one place</h2>
+    <p class="big">Grouped like the course, with buttons to the lessons where you can see each one in action. The conditions in each entry matter: a theorem is only guaranteed to hold when they are met.</p>
+    <input type="search" class="find ffind" id="ffind" placeholder="Filter (e.g. flux, polar, tangent)" aria-label="Filter formulas">
+    ${FORM.map(g => `<section class="fsec"><div class="fhead"><h3>${g.h}</h3><div class="fgo">${g.go.map(([id, t]) => `<button class="chip" data-go="${id}">${t}</button>`).join("")}</div></div><dl class="fgrid">${g.items.map(([k, v]) => `<div class="fi"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl></section>`).join("")}
+    <p class="fnone" hidden>No formula matches that filter.</p>`;
+  },
+  scene() { return { s3: null, s2: null, legend: [] }; }
+}];
+
 // =================== wiring ===================
 
 const UNITS = [
-  { n: 1, name: "Vectors & space", list: U1 },
-  { n: 2, name: "Several variables", list: U2 },
-  { n: 3, name: "Multiple integrals", list: U3 },
-  { n: 4, name: "Vector calculus", list: U4 }
+  { n: 0, tag: "R", label: "Review", name: "Before you start (optional)", list: U0 },
+  { n: 1, tag: "1", label: "Unit 1", name: "Vectors & space", list: U1 },
+  { n: 2, tag: "2", label: "Unit 2", name: "Several variables", list: U2 },
+  { n: 3, tag: "3", label: "Unit 3", name: "Multiple integrals", list: U3 },
+  { n: 4, tag: "4", label: "Unit 4", name: "Vector calculus", list: U4 },
+  { n: 5, tag: "F", label: "Reference", name: "Formula sheet", list: UF }
 ];
 const LESSONS = [];
-UNITS.forEach(u => u.list.forEach((l, i) => { l.unit = u.n; l.n = `${u.n}.${i + 1}`; LESSONS.push(l); }));
+UNITS.forEach(u => u.list.forEach((l, i) => { l.unit = u.n; l.n = u.list.length === 1 ? u.tag : `${u.tag}.${i + 1}`; LESSONS.push(l); }));
+const secLabel = s => !s ? "" : /^\d/.test(s) ? "§" + s : s;
 const byId = id => LESSONS.find(l => l.id === id);
 
 // ---- state ----
@@ -1693,9 +1903,9 @@ function open(id) {
 const idx = () => LESSONS.findIndex(l => l.id === S.lesson);
 function renderNav() {
   const L = byId(S.lesson), U = UNITS.find(u => u.n === L.unit), i = idx(), pv = LESSONS[i - 1], nx = LESSONS[i + 1];
-  $("crumb").textContent = `Unit ${U.n} · ${U.name} · Lesson ${L.n} · §${L.sec}`;
+  $("crumb").textContent = [U.label, U.name, L.page ? "" : "Lesson " + L.n, secLabel(L.sec)].filter(Boolean).join(" · ");
   const rep = "https://github.com/jiacode2030/multivariable-calculus/issues/new?title=" + encodeURIComponent(`Error in ${L.n} ${L.title}`) + "&body=" + encodeURIComponent(`Lesson: ${L.n} ${L.title} (#${L.id})\n\nWhat looks wrong (quote the text or describe the picture):\n\n\nWhat you think it should say:\n`);
-  $("report").href = rep; $("report2").href = rep;
+  $("report").href = rep; $("report2").href = rep; $("report").textContent = L.page ? "Report an error on this page" : "Report an error in this lesson";
   $("ltitle").textContent = L.title; document.title = `${L.title} · Multivariable Calculus`;
   $("prevTop").disabled = !pv; $("nextTop").disabled = !nx;
   $("pager").innerHTML = (pv ? `<button data-l="${pv.id}"><span>← Previous</span><b>${pv.n} ${pv.title}</b></button>` : "") + (nx ? `<button class="nx" data-l="${nx.id}"><span>Next →</span><b>${nx.n} ${nx.title}</b></button>` : "");
@@ -1705,7 +1915,7 @@ function renderOutline() {
   const q = $("find").value.trim().toLowerCase();
   const html = UNITS.map(u => {
     const ls = u.list.filter(l => !q || `${l.n} ${l.title} ${l.sec} ${u.name}`.toLowerCase().includes(q));
-    return ls.length ? `<div class="uh">Unit ${u.n} · ${u.name}</div><ol>${ls.map(l => `<li><button data-l="${l.id}"${l.id === S.lesson ? ' aria-current="page"' : ""}><span class="n">${l.n}</span><span>${l.title}</span></button></li>`).join("")}</ol>` : "";
+    return ls.length ? `<div class="uh">${u.label} · ${u.name}</div><ol>${ls.map(l => `<li><button data-l="${l.id}"${l.id === S.lesson ? ' aria-current="page"' : ""}><span class="n">${l.n}</span><span>${l.title}</span></button></li>`).join("")}</ol>` : "";
   }).join("");
   $("outline").innerHTML = html || `<p class="none">No lesson matches “${esc(q)}”.</p>`;
 }
@@ -1760,6 +1970,17 @@ $("controls").addEventListener("change", e => {
   else if (el.dataset.tk) { P()[el.dataset.tk] = el.value; refresh(true); }
 });
 $("controls").addEventListener("keydown", e => { if (e.key === "Enter" && (e.target.id === "custom" || e.target.dataset.tk)) e.target.dispatchEvent(new Event("change", { bubbles: true })); });
+$("teach").addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) open(g.dataset.go); });
+$("teach").addEventListener("input", e => {
+  if (e.target.id !== "ffind") return;
+  const q = e.target.value.trim().toLowerCase(); let any = 0;
+  document.querySelectorAll("#teach .fsec").forEach(sec => {
+    let n = 0; const h = sec.querySelector("h3").textContent;
+    sec.querySelectorAll(".fi").forEach(fi => { const ok = !q || `${h} ${fi.textContent}`.toLowerCase().includes(q); fi.hidden = !ok; n += ok; });
+    sec.hidden = !n; any += n;
+  });
+  document.querySelector("#teach .fnone").hidden = !!any;
+});
 $("teach").addEventListener("click", e => { const t = e.target.closest("[data-act]"); const L = byId(S.lesson); if (t && L.act) { L.act(t.dataset.act, P(), ctx()); refresh(true); } });
 
 // ---- views ----
@@ -1769,9 +1990,11 @@ const m2b = new Map2D($("c2b"), null);
 function refresh(rebuild = true) {
   const L = byId(S.lesson), p = P(), c = ctx();
   if (rebuild) $("controls").innerHTML = controlsHTML();
+  $("vis").hidden = !!L.page; document.querySelector(".grid").classList.toggle("pagemode", !!L.page);
   let res;
   try {
     $("teach").innerHTML = L.teach({ L, P: p, F: c.F, f: c.f, smp: c.smp });
+    if (L.page) return;
     res = L.scene({ P: p, F: c.F, f: c.f, smp: c.smp, L });
   } catch (err) { console.error(err); $("teach").innerHTML = `<p class="err">Something went wrong drawing this lesson (${esc(err.message)}). Try another setting.</p>`; return; }
   const two = !!res.s2b, has1 = !!res.s3 || two;
@@ -1791,7 +2014,8 @@ function refresh(rebuild = true) {
 }
 let initial = "";
 try { initial = decodeURIComponent(location.hash.slice(1)); } catch (e) { }
-open(byId(initial) ? initial : LESSONS[0].id);
+open(byId(initial) ? initial : "space");
+window.addEventListener("hashchange", () => { let id = ""; try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { } if (byId(id) && id !== S.lesson) open(id); });
 
 </script>
 </body>

@@ -18,8 +18,8 @@ Syntax check: extract the `<script>` body and run `node --check` on it.
 - `engine_old.js`: helpers (clamp, fmt, compile = safe f(x,y) parser), function PRESETS, numeric derivatives, critical points, quadric classifier, `View3D` (painter's-algorithm 3D renderer: meshes, quads, lines, points), `heat`, `marching` (level curves).
 - `engine2.js`: `Map2D` (2D view with bounds, heat grid or `shade(x,y)`, polys, levels, curves, arrows, spins, points, texts, pickable), simpson/integrate2, vector helpers, teaching HTML helpers (head, notice, spot, traps, checks, ro, roRow, M), colors C / CRGB.
 - `core.js`: state `S`, `current()` preset, `sample()`, surfaceMesh/surfaceCurve/fnScene, paramMesh, arrow3, polyQuad, boxQuads.
-- `lessons_uN.js`: arrays U1–U4 of lesson objects.
-- `main.js`: UNITS, sidebar outline + search, prev/next pager and ← → keys, Reset, declarative controls, refresh.
+- `lessons_uN.js`: arrays U1–U4 of lesson objects. Plus `U0` (optional Review: derivatives, integration, polar; data RD/RI/RP) and `UF` (the Key formulas page, data `FORM`).
+- `main.js`: UNITS (each has n, tag, label, name, list; lesson numbers are `tag.i`), sidebar outline + search, hashchange navigation, prev/next pager and ← → keys, Reset, declarative controls, refresh.
 
 ## Lesson object
 ```
@@ -29,7 +29,11 @@ Syntax check: extract the `<script>` body and run `node --check` on it.
   scene({P,F,f,smp,L}) -> { s3|null, s2|null, s2b?, legend:[[label,color]], v1Lbl?, v2Lbl?, v2Hint? },
   pick?(x,y,P), act?(name,P,ctx), onSeg?(P), onOpen?(P,ctx) }
 ```
+A lesson with `page: true` (the formula sheet) hides the figure panel and renders only `teach`.
 `s3` → 3D canvas; `s2` → right 2D map; `s2b` replaces the 3D canvas with a second 2D map (used by the Jacobian lesson). Null views are hidden.
+
+## claude.ai copy
+A second copy is published as a claude.ai artifact. Build it with `python3 tools/to_artifact.py OUT.html` (strips the doctype/head/body wrapper the artifact host adds itself). Never edit that copy by hand.
 
 ## Testing
 `npm install && npx playwright install chromium && npm test` runs `tests/check.js`: opens every lesson, clicks every control, checks the report link, runs the numeric math checks (Green/Stokes/divergence balance, switching order, exact answers), and checks the phone layout. Exits 1 on any problem.

@@ -62,10 +62,39 @@ const url = "file://" + path.resolve(__dirname, "..", "index.html");
     // Critical points of x³−3x+y² classified as stated
     const cps = criticalPointsRaw((x, y) => x ** 3 - 3 * x + y * y, 2.2).map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}:${p.type}`).join(' ');
     R.push([cps === '-1.00,0.00:saddle 1.00,0.00:min' ? 'ok ' : 'BAD', 'critical points x³−3x+y² → ' + cps]);
+    // Review: derivatives (formula vs numeric slope) and the check answers
+    const nd = (g, x) => (g(x + 1e-5) - g(x - 1e-5)) / 2e-5;
+    for (const [k, F] of Object.entries(RD)) for (const t of [0.15, 0.5, 0.85]) { const x = F.A[0] + t * (F.A[1] - F.A[0]); chk(`deriv ${k} at ${x.toFixed(2)}`, F.d(x), nd(F.f, x), 1e-5); }
+    const x7 = 0.7;
+    chk("d/dx x² sin x", 2 * x7 * Math.sin(x7) + x7 * x7 * Math.cos(x7), nd(x => x * x * Math.sin(x), x7), 1e-6);
+    chk("d/dx e^(3x²)", 6 * x7 * Math.exp(3 * x7 * x7), nd(x => Math.exp(3 * x * x), x7), 1e-6);
+    chk("d/dx arctan 2x", 2 / (1 + 4 * x7 * x7), nd(x => Math.atan(2 * x), x7), 1e-6);
+    chk("d/dx ln x / x", (1 - Math.log(1.7)) / 1.7 ** 2, nd(x => Math.log(x) / x, 1.7), 1e-6);
+    // Review: integration (antiderivative vs numeric) and the check answers
+    for (const [k, F] of Object.entries(RI)) { chk(`integral ${k} 0..X`, F.F(F.X) - F.F(0), simpson(F.f, 0, F.X, 400), 1e-6); for (const x of [0.3, 1.1]) chk(`antiderivative ${k}`, nd(F.F, x), F.f(x), 1e-5); }
+    chk("∫ x eˣ: ((x−1)eˣ)′ = x eˣ", nd(x => (x - 1) * Math.exp(x), 0.9), 0.9 * Math.exp(0.9), 1e-6);
+    chk("∫₀^π sin² = π/2", simpson(t => Math.sin(t) ** 2, 0, Math.PI, 400), Math.PI / 2, 1e-6);
+    chk("∫₀¹ 2x e^(x²) = e − 1", simpson(x => 2 * x * Math.exp(x * x), 0, 1, 400), Math.E - 1, 1e-6);
+    chk("∫₀^2π cos² = π", simpson(t => Math.cos(t) ** 2, 0, 2 * Math.PI, 400), Math.PI, 1e-6);
+    // Review: polar areas and the check answers
+    for (const [k, C0] of Object.entries(RP)) chk(`polar area ${k}`, 0.5 * simpson(t => C0.r(t) ** 2, 0, C0.T, 800), C0.area, 1e-6);
+    chk("polar (−1, √3): r", Math.hypot(-1, Math.sqrt(3)), 2, 1e-9); chk("polar (−1, √3): θ", Math.atan2(Math.sqrt(3), -1), 2 * Math.PI / 3, 1e-9);
+    for (const t of [0.3, 1.2, 2.5]) { const r = 4 * Math.sin(t), x = r * Math.cos(t), y = r * Math.sin(t); chk(`r = 4 sin θ on x² + (y − 2)² = 4 (θ=${t})`, x * x + (y - 2) ** 2, 4, 1e-9); }
+    chk("cardioid area 3π/2", 0.5 * simpson(t => (1 + Math.cos(t)) ** 2, 0, 2 * Math.PI, 800), 1.5 * Math.PI, 1e-6);
+    chk("one petal of cos 2θ = π/8", 0.5 * simpson(t => Math.cos(2 * t) ** 2, -Math.PI / 4, Math.PI / 4, 800), Math.PI / 8, 1e-6);
+    // Formula sheet: every lesson button points at a real lesson
+    for (const g of FORM) for (const [id] of g.go) R.push([byId(id) ? "ok " : "BAD", `formula link ${id}`]);
     return R;
   });
   const bad = math.filter(r => r[0] === "BAD");
   bad.forEach(r => errs.push("Math: " + r.slice(1).join(" | ")));
+
+  // 2b. formula page filter
+  await pg.evaluate(() => open("formulas"));
+  await pg.fill("#ffind", "stokes");
+  const shown = await pg.locator("#teach .fi:visible").count();
+  if (shown < 1 || shown > 4) errs.push(`Formula filter: "stokes" showed ${shown} entries`);
+  if (!(await pg.locator("#vis").isHidden())) errs.push("Formula page: figure panel should be hidden");
 
   // 3. phone layout: no sideways scroll, lesson menu opens
   await pg.setViewportSize({ width: 390, height: 844 }); await pg.waitForTimeout(200);
