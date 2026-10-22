@@ -1,0 +1,6 @@
+{
+  "name": "multivariable-calculus",
+  "private": true,
+  "scripts": { "test": "node tests/check.js" },
+  "devDependencies": { "playwright": "1.48.2" }
+}

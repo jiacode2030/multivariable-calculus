@@ -32,4 +32,8 @@ Syntax check: extract the `<script>` body and run `node --check` on it.
 `s3` → 3D canvas; `s2` → right 2D map; `s2b` replaces the 3D canvas with a second 2D map (used by the Jacobian lesson). Null views are hidden.
 
 ## Testing
-Open every lesson with Playwright, click every option, and check for JS errors; verify any new math numerically.
+`npm install && npx playwright install chromium && npm test` runs `tests/check.js`: opens every lesson, clicks every control, checks the report link, runs the numeric math checks (Green/Stokes/divergence balance, switching order, exact answers), and checks the phone layout. Exits 1 on any problem.
+GitHub Actions (`.github/workflows/check.yml`) runs it on every push, every PR, and weekly. When adding a lesson or changing math, add a numeric check for it in the math section of `tests/check.js`.
+
+## Error reports
+Readers report errors through GitHub Issues (pre-filled per lesson). Verify each report numerically or against the textbook before changing anything; reply on the issue with what was found.
