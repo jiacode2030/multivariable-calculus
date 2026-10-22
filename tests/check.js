@@ -102,6 +102,13 @@ const url = "file://" + path.resolve(__dirname, "..", "index.html");
     for (const [k, C0] of Object.entries(PCV)) for (const f of [0.1, 0.45, 0.8]) { const t = C0.T[0] + f * (C0.T[1] - C0.T[0]), [x, y] = C0.r(t); chk(`param ${k} on equation`, C0.G(x, y), 0, 1e-9); chk(`param ${k} velocity x`, C0.d(t)[0], nd(u => C0.r(u)[0], t), 1e-5); chk(`param ${k} velocity y`, C0.d(t)[1], nd(u => C0.r(u)[1], t), 1e-5); }
     for (const t of [0.5, 2, 4]) { chk("(x−2)²+(y+1)²=1", (Math.cos(t)) ** 2 + (Math.sin(t)) ** 2, 1, 1e-12); const x = 1 + 2 * Math.cos(t), y = -2 + 3 * Math.sin(t); chk("(x−1)²/4+(y+2)²/9=1", (x - 1) ** 2 / 4 + (y + 2) ** 2 / 9, 1, 1e-12); }
     chk("speed of (3cos t, 2sin t) at π/2", Math.hypot(-3 * Math.sin(Math.PI / 2), 2 * Math.cos(Math.PI / 2)), 3, 1e-12);
+    // Review: series — coefficients equal f^(k)(0)/k!, error ≤ Taylor bound, and the check answers
+    for (const [k, S0] of Object.entries(SER)) for (const x of [S0.X[0] * 0.5, 0.3, S0.X[1] * 0.6]) { if (Math.abs(x) >= S0.R) continue; chk(`series ${k} converges at ${x.toFixed(2)}`, taylorT(S0, 400, x), S0.f(x), 1e-7); }
+    for (const [k, S0] of Object.entries(SER)) if (S0.M) for (const x of [-2, -0.7, 0.5, 1.8]) for (const n of [1, 3, 6]) { const e = Math.abs(S0.f(x) - taylorT(S0, n, x)), b = S0.M(x, n) * Math.abs(x) ** (n + 1) / FACT(n + 1); R.push([e <= b * (1 + 1e-9) ? "ok " : "BAD", `Taylor bound ${k} n=${n} x=${x}`, e, b]); }
+    chk("Σ(1/2)^n = 2", taylorT(SER.geo, 60, 0.5), 2, 1e-9);
+    chk("e^0.5 − T3 ≈ 0.0029", Math.exp(0.5) - taylorT(SER.exp, 3, 0.5), 0.0028880, 1e-3);
+    chk("bound 2(0.5)^4/24 ≈ 0.0052", 2 * 0.5 ** 4 / 24, 0.0052083, 1e-4);
+    chk("sin 0.1 ≈ 0.0998333", 0.1 - 0.001 / 6, Math.sin(0.1), 1e-7);
     // Formula sheet: every lesson button points at a real lesson
     for (const g of FORM) for (const [id] of g.go) R.push([byId(id) ? "ok " : "BAD", `formula link ${id}`]);
     return R;

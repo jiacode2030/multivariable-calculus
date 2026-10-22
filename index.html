@@ -150,6 +150,53 @@ table.cp tr.best td{background:var(--green-soft)}
   .side.open .toc{display:flex;max-height:calc(100vh - 60px)}
   .card{padding:14px}
 }
+/* ---- polish layer: depth, motion, touch ---- */
+:root{--shadow:0 1px 2px rgba(16,24,40,.05),0 12px 28px -16px rgba(16,24,40,.22);--track:#DCE3EC;--ease:cubic-bezier(.2,.7,.2,1)}
+body{background:radial-gradient(1100px 480px at 75% -12%,#E6EEFA 0%,rgba(230,238,250,0) 60%),var(--bg)}
+.card{border-radius:16px;box-shadow:var(--shadow)}
+.view{border-radius:14px;background:linear-gradient(180deg,#FFFFFF 0%,#F7F9FC 100%)}
+.view canvas:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.btn,.pbtn,.chip,.outline button,.pager button,.vtools button,.play{transition:background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease,transform .1s ease}
+.btn:active,.pbtn:active:not(:disabled),.chip:active,.play:active,.pager button:active{transform:translateY(1px)}
+.btn{min-height:36px;padding:7px 12px;border-radius:10px}
+.btn.on{box-shadow:0 3px 10px -4px rgba(36,87,166,.55)}
+.pager button:hover{box-shadow:var(--shadow)}
+.lrow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:30px}
+.lrow label{font-size:.8rem;font-weight:600;color:var(--muted)}
+.lv{display:inline-flex;align-items:center;gap:8px}
+.lv b{font-family:var(--math);font-weight:500;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.play{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:inline-grid;place-items:center;cursor:pointer;color:var(--accent);padding:0}
+.play:hover{border-color:var(--accent)}
+.play[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ctl input[type=range]{-webkit-appearance:none;appearance:none;height:26px;background:transparent;cursor:pointer;margin:0}
+.ctl input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p,50%),var(--track) var(--p,50%))}
+.ctl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--accent);margin-top:-7px;box-shadow:0 1px 4px rgba(16,24,40,.28);transition:box-shadow .15s ease}
+.ctl input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--track)}
+.ctl input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
+.ctl input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--accent);box-shadow:0 1px 4px rgba(16,24,40,.28)}
+.ctl input[type=range]:focus-visible{outline:none}
+.ctl input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 5px rgba(36,87,166,.28)}
+.ctl input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 5px rgba(36,87,166,.28)}
+.vtools{position:absolute;left:8px;bottom:8px;display:flex;gap:2px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:0 4px 12px -6px rgba(16,24,40,.25)}
+.vtools button{border:0;background:none;border-radius:7px;padding:4px 8px;font-size:.74rem;font-weight:700;cursor:pointer;color:var(--muted)}
+.vtools button:hover{background:var(--soft);color:var(--ink)}
+.vtools button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.view .hint{transition:opacity .4s ease}
+.view.touched .hint{opacity:0}
+.view:has(.vtools:not([hidden])) .hint{bottom:48px}
+body.wide .grid{grid-template-columns:minmax(0,1fr)}
+body.wide .views{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.grid.enter{animation:enter .32s var(--ease)}
+.outline button{grid-template-columns:30px minmax(0,1fr) 8px;align-items:center}
+.outline button.v::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);opacity:.7}
+.outline button.v[aria-current="page"]::after{background:var(--accent)}
+.checks summary{padding:2px 0}
+.checks details[open]{border-color:#C9D9F2;background:#FBFCFE}
+.checks details[open] .ans{animation:enter .22s var(--ease)}
+@media (max-width:560px){.vtools button{padding:4px 6px}}
+@media (pointer:coarse){.btn,.pbtn,.chip{min-height:44px}.play{width:40px;height:40px}.vtools button{min-height:36px;padding:6px 9px}.outline button{padding:10px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 </style>
 
 </head>
@@ -170,7 +217,7 @@ table.cp tr.best td{background:var(--green-soft)}
     <div class="grid">
       <section class="card vis" id="vis" aria-label="Interactive figure">
         <div class="views">
-          <div class="view" id="v1"><span class="lbl" id="v1Lbl">3D view</span><canvas id="c3d" aria-label="3D view, drag to rotate"></canvas><canvas id="c2b" hidden aria-label="Second 2D view"></canvas><span class="hint" id="v1Hint">Drag to rotate · scroll to zoom</span></div>
+          <div class="view" id="v1"><span class="lbl" id="v1Lbl">3D view</span><canvas id="c3d" aria-label="3D view, drag to rotate"></canvas><canvas id="c2b" hidden aria-label="Second 2D view"></canvas><span class="hint" id="v1Hint">Drag to rotate · scroll or pinch to zoom</span><div class="vtools" id="vtools" role="group" aria-label="Viewing angle"><button data-view="iso">3D</button><button data-view="top">Top</button><button data-view="front">Front</button><button data-view="side">Side</button><button data-view="big" id="bigBtn" aria-pressed="false">Enlarge</button></div></div>
           <div class="view" id="v2"><span class="lbl" id="v2Lbl">Top view</span><canvas id="c2d" aria-label="2D view"></canvas><span class="hint" id="v2Hint">Click or drag to move the point</span></div>
         </div>
         <div class="legend" id="legend"></div>
@@ -372,18 +419,52 @@ function quadricMeshes(k, D, L) {
 }
 
 // ---------- 3D view (dependency-free canvas renderer) ----------
+const RM = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+const VIEWS = { iso: [-0.78, 0.55], top: [-Math.PI / 2, 1.55], front: [0, 0.04], side: [-Math.PI / 2, 0.04] };
 class View3D {
   constructor(canvas) {
-    this.c = canvas; this.ctx = canvas.getContext("2d"); this.az = -0.78; this.el = 0.55; this.zoom = 1; this.scene = null;
-    let drag = null;
-    canvas.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener("pointermove", e => { if (!drag) return; this.az -= (e.clientX - drag.x) * 0.01; this.el = clamp(this.el + (e.clientY - drag.y) * 0.008, -0.2, 1.5); drag = { x: e.clientX, y: e.clientY }; this.draw(); });
-    const end = () => drag = null; canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
-    canvas.addEventListener("wheel", e => { e.preventDefault(); this.zoom = clamp(this.zoom * (e.deltaY > 0 ? 0.92 : 1.08), 0.5, 2.4); this.draw(); }, { passive: false });
-    canvas.addEventListener("dblclick", () => { this.az = -0.78; this.el = 0.55; this.zoom = 1; this.draw(); });
+    this.c = canvas; this.ctx = canvas.getContext("2d"); this.az = -0.78; this.el = 0.55; this.zoom = 1; this.scene = null; this.vel = 0; this.vel2 = 0; this.anim = 0;
+    const pts = new Map(); let last = [0, 0, 0], pinch = 0;
+    canvas.addEventListener("pointerdown", e => {
+      this.stop(); pts.set(e.pointerId, [e.clientX, e.clientY]); canvas.setPointerCapture(e.pointerId); last = [e.clientX, e.clientY, performance.now()]; this.vel = this.vel2 = 0;
+      if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); }
+      canvas.parentElement.classList.add("touched");
+    });
+    canvas.addEventListener("pointermove", e => {
+      if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) this.zoom = clamp(this.zoom * d / pinch, 0.5, 2.6); pinch = d; this.draw(); return; }
+      const now = performance.now(), dx = e.clientX - last[0], dy = e.clientY - last[1], dt = Math.max(8, now - last[2]);
+      this.az -= dx * 0.01; this.el = clamp(this.el + dy * 0.008, -0.2, 1.55); this.vel = -dx * 0.01 / dt * 16; this.vel2 = dy * 0.008 / dt * 16; last = [e.clientX, e.clientY, now]; this.draw();
+    });
+    const end = e => { pts.delete(e.pointerId); pinch = 0; if (!pts.size && !RM && performance.now() - last[2] < 80 && Math.abs(this.vel) + Math.abs(this.vel2) > 0.003) this.coast(); };
+    canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
+    canvas.addEventListener("wheel", e => { e.preventDefault(); this.stop(); this.zoom = clamp(this.zoom * (e.deltaY > 0 ? 0.92 : 1.08), 0.5, 2.6); this.draw(); }, { passive: false });
+    canvas.addEventListener("dblclick", () => this.setView(...VIEWS.iso, 1));
+    canvas.tabIndex = 0;
+    canvas.addEventListener("keydown", e => {
+      const k = e.key, a = { ArrowLeft: [0.12, 0], ArrowRight: [-0.12, 0], ArrowUp: [0, 0.08], ArrowDown: [0, -0.08] }[k];
+      if (a) { this.stop(); this.az += a[0]; this.el = clamp(this.el + a[1], -0.2, 1.55); this.draw(); }
+      else if (k === "+" || k === "=") { this.zoom = clamp(this.zoom * 1.1, 0.5, 2.6); this.draw(); }
+      else if (k === "-") { this.zoom = clamp(this.zoom / 1.1, 0.5, 2.6); this.draw(); }
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    });
     new ResizeObserver(() => this.resize()).observe(canvas);
   }
-  resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(480, w * 0.82)); const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
+  stop() { cancelAnimationFrame(this.anim); this.anim = 0; }
+  coast() {
+    const step = () => { this.vel *= 0.93; this.vel2 *= 0.93; this.az += this.vel; this.el = clamp(this.el + this.vel2, -0.2, 1.55); this.draw(); this.anim = Math.abs(this.vel) + Math.abs(this.vel2) > 0.0006 ? requestAnimationFrame(step) : 0; };
+    this.anim = requestAnimationFrame(step);
+  }
+  setView(az, el, zoom = this.zoom, ms = 480) {
+    this.stop();
+    if (RM) { this.az = az; this.el = el; this.zoom = zoom; this.draw(); return; }
+    const a0 = this.az, e0 = this.el, z0 = this.zoom, da = ((az - a0) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI, t0 = performance.now(), ease = t => 1 - (1 - t) ** 3;
+    const step = now => { const t = Math.min(1, (now - t0) / ms), k = ease(t); this.az = a0 + da * k; this.el = e0 + (el - e0) * k; this.zoom = z0 + (zoom - z0) * k; this.draw(); this.anim = t < 1 ? requestAnimationFrame(step) : 0; };
+    this.anim = requestAnimationFrame(step);
+  }
+  intro() { if (RM) return; const az = this.az; this.az = az + 0.55; this.setView(az, this.el, this.zoom, 1000); }
+  resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(document.body.classList.contains("wide") ? 660 : 480, w * 0.82)); const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
   proj([x, y, z]) {
     const ca = Math.cos(this.az), sa = Math.sin(this.az), ce = Math.cos(this.el), se = Math.sin(this.el);
     const x1 = x * ca - y * sa, y1 = x * sa + y * ca;
@@ -445,6 +526,14 @@ class View3D {
       const q = this.proj(pt.p); g.beginPath(); g.arc(q[0], q[1], pt.r || 5.5, 0, 7); g.fillStyle = pt.color; g.fill(); g.lineWidth = 2; g.strokeStyle = "#fff"; g.stroke();
       if (pt.label) { g.font = "600 12px IBM Plex Sans, system-ui"; g.fillStyle = "#18202B"; g.fillText(pt.label, q[0] + 9, q[1] + (pt.labelDy ?? -8)); }
     }
+    this.gizmo();
+  }
+  gizmo() {
+    const g = this.ctx, o = this.proj([0, 0, 0]), S = Math.min(this.W, this.H) * 0.29 * this.zoom, cx = this.W - 34, cy = 40;
+    g.save(); g.beginPath(); g.arc(cx, cy, 27, 0, 7); g.fillStyle = "rgba(255,255,255,.85)"; g.fill(); g.strokeStyle = "#DEE3EA"; g.lineWidth = 1; g.stroke();
+    [[[0.3, 0, 0], "#C2453A", "x"], [[0, 0.3, 0], "#2E8B57", "y"], [[0, 0, 0.3], "#2457A6", "z"]].map(([v, col, t]) => { const q = this.proj(v), dx = q[0] - o[0], dy = q[1] - o[1], len = Math.hypot(dx, dy) || 1, f = Math.min(1, len / (0.3 * S)) * 18; return { dx: dx / len * f, dy: dy / len * f, col, t, d: q[2] }; })
+      .sort((a, b) => a.d - b.d).forEach(a => { g.strokeStyle = a.col; g.lineWidth = 2.2; g.lineCap = "round"; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + a.dx, cy + a.dy); g.stroke(); g.fillStyle = a.col; g.font = "700 10.5px IBM Plex Sans, system-ui"; g.textAlign = "center"; g.fillText(a.t, cx + a.dx * 1.32, cy + a.dy * 1.32 + 4); });
+    g.restore();
   }
   seg(a, b) { const p = this.proj(a), q = this.proj(b); this.ctx.beginPath(); this.ctx.moveTo(p[0], p[1]); this.ctx.lineTo(q[0], q[1]); this.ctx.stroke(); }
 }
@@ -497,7 +586,7 @@ class Map2D {
     const end = () => down = false; canvas.addEventListener("pointerup", end); canvas.addEventListener("pointercancel", end);
     new ResizeObserver(() => this.resize()).observe(canvas);
   }
-  resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(480, w * 0.82)); if (!w) return; const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
+  resize() { const w = this.c.clientWidth || 400, h = Math.round(Math.min(document.body.classList.contains("wide") ? 660 : 480, w * 0.82)); if (!w) return; const r = window.devicePixelRatio || 1; this.c.style.height = h + "px"; this.c.width = Math.round(w * r); this.c.height = Math.round(h * r); this.W = w; this.H = h; this.ctx.setTransform(r, 0, 0, r, 0, 0); this.draw(); }
   get bounds() { const sc = this.scene; return sc.bounds || [-sc.L, sc.L, -sc.L, sc.L]; }
   get box() {
     const [x0, x1, y0, y1] = this.bounds, padX = 34, padY = 26;
@@ -1744,6 +1833,47 @@ const PCV = {
   hyp: { name: "Hyperbola branch", tex: "(cosh t, sinh t)", r: t => [Math.cosh(t), Math.sinh(t)], d: t => [Math.sinh(t), Math.cosh(t)], T: [-1.8, 1.8], eq: "x² − y² = 1 with x ≥ 1 (right branch only)", G: (x, y) => x * x - y * y - 1 }
 };
 
+const FACT = n => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+const SER = {
+  exp: { tex: "eˣ", f: Math.exp, c: k => 1 / FACT(k), terms: "1 + x + x²/2! + x³/3! + ⋯", R: Infinity, B: [-3.2, 3.2, -1.5, 9], X: [-3, 3], M: (x, n) => Math.exp(Math.max(0, x)), Mtex: "e<sup>max(0, x)</sup>" },
+  sin: { tex: "sin x", f: Math.sin, c: k => k % 2 ? (k % 4 === 1 ? 1 : -1) / FACT(k) : 0, terms: "x − x³/3! + x⁵/5! − ⋯", R: Infinity, B: [-6.6, 6.6, -2.6, 2.6], X: [-6.3, 6.3], M: () => 1, Mtex: "1" },
+  ln: { tex: "ln(1 + x)", f: x => Math.log(1 + x), c: k => k === 0 ? 0 : (k % 2 ? 1 : -1) / k, terms: "x − x²/2 + x³/3 − ⋯", R: 1, B: [-1.2, 2.6, -2.6, 1.6], X: [-0.95, 2.4] },
+  geo: { tex: "1/(1 − x)", f: x => 1 / (1 - x), c: () => 1, terms: "1 + x + x² + x³ + ⋯", R: 1, B: [-1.9, 1.3, -1, 6], X: [-1.8, 0.9] }
+};
+const taylorT = (S0, n, x) => { let s = 0; for (let k = 0; k <= n; k++) s += S0.c(k) * x ** k; return s; };
+const U0S = {
+  id: "rseries", sec: "Ch. 10", title: "Series & Taylor polynomials", defaults: { fn: "exp", n: 3, x: 1 },
+  controls(P) { const S0 = SER[P.fn]; return [{ t: "seg", k: "fn", label: "Function", opts: Object.entries(SER).map(([k, v]) => [k, v.tex]) }, { t: "range", k: "n", label: "Degree n", min: 0, max: 12, step: 1, d: 0 }, { t: "range", k: "x", label: "Evaluate at x", min: S0.X[0], max: S0.X[1], step: 0.01 }]; },
+  onSeg(P, k) { if (k === "fn") { const S0 = SER[P.fn]; P.x = clamp(P.x, S0.X[0], S0.X[1]); } },
+  calc(P) {
+    const S0 = SER[P.fn], n = P.n, x = clamp(P.x, S0.X[0], S0.X[1]), fx = S0.f(x), Tn = taylorT(S0, n, x), err = Math.abs(fx - Tn);
+    const bound = S0.M ? S0.M(x, n) * Math.abs(x) ** (n + 1) / FACT(n + 1) : null, inside = Math.abs(x) < S0.R;
+    return { S0, n, x, fx, Tn, err, bound, inside };
+  },
+  teach({ L, P }) {
+    const k = this.calc(P), S0 = k.S0, poly = [...Array(k.n + 1).keys()].map(j => [S0.c(j), j]).filter(([c]) => Math.abs(c) > 1e-15);
+    const ptex = poly.length ? poly.map(([c, j], i) => { const a = Math.abs(c), sgn = c < 0 ? (i ? " − " : "−") : i ? " + " : "", fr = Math.abs(a - 1) < 1e-12 && j ? "" : (Math.abs(1 / a - Math.round(1 / a)) < 1e-9 && a < 1 ? `(1/${Math.round(1 / a)})` : fmt(a, 4)); return `${sgn}${fr}${j === 0 ? "" : j === 1 ? "x" : `x<sup>${j}</sup>`}`; }).join("") : "0";
+    return `${head(L, "A Taylor polynomial is a function's best polynomial imitation near a point")}
+    <p class="big">A <b>series</b> adds infinitely many terms; it converges when its partial sums approach a limit. The <b>Taylor series</b> of f at 0 is ${M("f(0) + f′(0)x + f″(0)x²/2! + ⋯ = Σ f<sup>(k)</sup>(0) xᵏ/k!")}. Stopping at degree n gives the <b>Taylor polynomial</b> ${M("Tₙ")}, and the <b>error</b> ${M("|f(x) − Tₙ(x)|")} is what lesson 2.11's quadratic approximation leaves out.</p>
+    ${roRow(ro("f(x)", M(S0.tex)), ro("Series", M(S0.terms)), ro("Converges for", S0.R === Infinity ? "every x" : M("−1 < x < 1") + (P.fn === "ln" ? " (and x = 1)" : "")))}
+    <div class="setup">${M(`T<sub>${k.n}</sub>(x) = ${ptex}`)}</div>
+    ${roRow(ro(`f(${fmt(k.x)})`, fmt(k.fx, 6)), ro(`T<sub>${k.n}</sub>(${fmt(k.x)})`, fmt(k.Tn, 6)), ro("Actual error", k.err < 1e-12 ? "< 10⁻¹²" : k.err.toExponential(2), true), ro("Taylor's inequality bound", k.bound === null ? "see notes below" : k.bound.toExponential(2)))}
+    ${k.inside ? "" : `<div class="box trap"><h3>Outside the interval of convergence</h3><p>At x = ${fmt(k.x)} the series diverges: raising n makes the error <b>bigger</b>, not smaller. Try it.</p></div>`}
+    ${notice([`Raise n: the violet polynomial hugs the curve over a wider and wider stretch around 0.`, `The right panel shows log₁₀ of the error for every degree at your x. Inside the interval of convergence the bars drop as n grows; outside it they climb.`, `For sin x only odd powers appear, so raising n from 3 to 4 changes nothing.`, `The error bound is always at least the actual error: Taylor's inequality is a guarantee, not an estimate.`])}
+    ${spot([`Geometric series: Σ arⁿ = a/(1 − r) when |r| < 1, and diverges when |r| ≥ 1.`, `Taylor's inequality: if |f<sup>(n+1)</sup>| ≤ M between 0 and x, then |f(x) − Tₙ(x)| ≤ M|x|<sup>n+1</sup>/(n + 1)!.${S0.M ? ` Here M = ${S0.Mtex}.` : ""}`, `Alternating series with terms shrinking to 0: the error is at most the first omitted term.`, `Ratio test: if |a<sub>n+1</sub>/aₙ| → L < 1 the series converges absolutely; L > 1 diverges; L = 1 says nothing.`, `Know these: eˣ = Σ xⁿ/n!, sin x = Σ (−1)ⁿx<sup>2n+1</sup>/(2n+1)!, cos x = Σ (−1)ⁿx<sup>2n</sup>/(2n)!, 1/(1 − x) = Σ xⁿ (|x| < 1).`], "Tools for series and error")}
+    ${traps([`Taylor polynomials are only guaranteed to be good near the center. Far away, or outside the interval of convergence, they can be badly wrong.`, `Terms going to 0 is necessary for convergence but not enough: Σ 1/n diverges.`])}
+    ${checks([[`Σ (1/2)ⁿ from n = 0?`, `Geometric with r = 1/2: 1/(1 − 1/2) = 2.`], [`Bound the error of T₃ for eˣ at x = 0.5.`, `M = e<sup>0.5</sup> < 2, so error ≤ 2(0.5)⁴/4! ≈ 0.0052. (Actual: e<sup>0.5</sup> − 1.64583 ≈ 0.0029.)`], [`Estimate sin(0.1) with T₃ and bound the error.`, `0.1 − 0.1³/6 ≈ 0.0998333. Alternating, so the error ≤ 0.1⁵/5! ≈ 8.3 × 10⁻⁸.`], [`Does Σ 1/n² converge? Σ 1/n?`, `Σ 1/n² converges (p-series, p = 2 > 1); Σ 1/n diverges (p = 1).`]])}`;
+  },
+  scene({ P }) {
+    const k = this.calc(P), S0 = k.S0, B = S0.B, xs = range(400, B[0], B[1]);
+    const fpts = xs.filter(x => isFinite(S0.f(x)) && !(P.fn === "geo" && x > 0.985)).map(x => [x, S0.f(x)]);
+    const s2b = { bounds: B, tick: 1, curves: [{ pts: fpts, color: C.ink, width: 2.6 }, { pts: xs.map(x => [x, taylorT(S0, k.n, x)]), color: C.violet, width: 2.6, dash: [7, 4] }, { pts: [[k.x, Math.min(k.fx, k.Tn)], [k.x, Math.max(k.fx, k.Tn)]], color: C.red, width: 3 }], polys: [], points: [{ x: k.x, y: k.fx, color: C.ink, r: 4.5 }, { x: k.x, y: clamp(k.Tn, B[2], B[3]), color: C.violet, r: 4.5 }], pickable: false };
+    if (S0.R < Infinity) s2b.polys.push({ pts: [[-S0.R, B[2]], [S0.R, B[2]], [S0.R, B[3]], [-S0.R, B[3]]], fill: "rgba(46,139,87,.07)" });
+    const bars = [...Array(13).keys()].map(n => { const e = Math.abs(S0.f(k.x) - taylorT(S0, n, k.x)); return [n, clamp(e > 0 ? Math.log10(e) : -12, -12, 6)]; });
+    const s2 = { bounds: [-0.8, 12.8, -12.5, 6.5], tick: 2, polys: bars.map(([n, h]) => ({ pts: [[n - 0.35, -12], [n + 0.35, -12], [n + 0.35, h], [n - 0.35, h]], fill: n === k.n ? "rgba(194,69,58,.85)" : "rgba(122,79,181,.35)", stroke: n === k.n ? C.red : null, width: 1 })), points: [], pickable: false, xLabel: "n", yLabel: "log₁₀ err" };
+    return { s3: null, s2b, s2, legend: [["f(x)", C.ink], [`Taylor polynomial T${k.n}`, C.violet], ["Error at x", C.red], ...(S0.R < Infinity ? [["Interval of convergence", C.green]] : [])], v1Lbl: "f and its Taylor polynomial", v2Lbl: "Error vs degree (log scale)" };
+  }
+};
 const U0 = [
 {
   id: "rderiv", sec: "Ch. 3", title: "Derivatives refresher", defaults: { fn: "sq", a: 1, h: 1 },
@@ -1912,12 +2042,13 @@ const U0 = [
     const s2b = { bounds: [-0.3, C0.T + 0.3, lo - 0.4, hi + 0.4], tick: C0.T > 4 ? 1 : 0.5, curves: [{ pts: ts.map(t => [t, C0.r(t)]), color: "rgba(30,140,140,.45)", width: 2 }, { pts: range(160, 0, k.t).map(t => [t, C0.r(t)]), color: C.teal, width: 3.5 }, { pts: [[k.t, 0], [k.t, k.r]], color: C.ink, width: 2, dash: [4, 3] }], points: [{ x: k.t, y: k.r, color: C.ink }], pickable: false, xLabel: "θ", yLabel: "r" };
     return { s3: null, s2b, s2, legend: [["Curve traced so far", C.teal], ["Swept area ½∫ r² dθ", C.amber], ["Ray at angle θ", C.gray]], v1Lbl: "r as a function of θ", v2Lbl: "The polar curve" };
   }
-}
+},
+U0S
 ];
 
 // =================== REFERENCE: key formulas ===================
 const FORM = [
-  { h: "Review: single-variable tools", go: [["rderiv", "Derivatives"], ["rint", "Integration"], ["rarea", "Area between curves"], ["rconic", "Conics"], ["rparam", "Parametric curves"], ["rpolar", "Polar"]], items: [
+  { h: "Review: single-variable tools", go: [["rderiv", "Derivatives"], ["rint", "Integration"], ["rarea", "Area between curves"], ["rconic", "Conics"], ["rparam", "Parametric curves"], ["rpolar", "Polar"], ["rseries", "Series"]], items: [
     ["Tangent line", "y = f(a) + f′(a)(x − a)"],
     ["Product, quotient, chain rules", "(fg)′ = f′g + fg′ &nbsp;·&nbsp; (f/g)′ = (f′g − fg′)/g² &nbsp;·&nbsp; [f(g(x))]′ = f′(g(x)) g′(x)"],
     ["Fundamental Theorem of Calculus", "f continuous, F′ = f: ∫ₐᵇ f(x) dx = F(b) − F(a), and d/dx ∫ₐˣ f(t) dt = f(x)"],
@@ -1925,6 +2056,9 @@ const FORM = [
     ["Area between curves", "∫ₐᵇ [top(x) − bottom(x)] dx or ∫<sub>c</sub><sup>d</sup> [right(y) − left(y)] dy; split where a boundary curve changes"],
     ["Conic sections", "ellipse x²/a² + y²/b² = 1 &nbsp;·&nbsp; hyperbola x²/a² − y²/b² = 1 (asymptotes y = ±(b/a)x) &nbsp;·&nbsp; parabola x² = 4py (focus (0, p)); replace x, y by x − h, y − k to shift"],
     ["Parametrizations", "circle (h + R cos t, k + R sin t), ellipse (h + a cos t, k + b sin t), 0 ≤ t ≤ 2π, counterclockwise &nbsp;·&nbsp; segment P + t(Q − P), 0 ≤ t ≤ 1"],
+    ["Geometric series", "Σ<sub>n≥0</sub> a rⁿ = a/(1 − r) if |r| < 1; diverges if |r| ≥ 1"],
+    ["Taylor series and error", "f(x) = Σ f<sup>(k)</sup>(a)(x − a)ᵏ/k! where it converges; if |f<sup>(n+1)</sup>| ≤ M between a and x, then |f(x) − Tₙ(x)| ≤ M|x − a|<sup>n+1</sup>/(n + 1)!"],
+    ["Common series", "eˣ = Σ xⁿ/n! &nbsp;·&nbsp; sin x = Σ (−1)ⁿx<sup>2n+1</sup>/(2n+1)! &nbsp;·&nbsp; cos x = Σ (−1)ⁿx<sup>2n</sup>/(2n)! (all x) &nbsp;·&nbsp; 1/(1 − x) = Σ xⁿ (|x| < 1)"],
     ["Half-angle identities", "sin²θ = (1 − cos 2θ)/2 &nbsp;·&nbsp; cos²θ = (1 + cos 2θ)/2 &nbsp;·&nbsp; sin θ cos θ = ½ sin 2θ"],
     ["Polar ↔ Cartesian", "x = r cos θ, y = r sin θ, r² = x² + y², tan θ = y/x"],
     ["Area of a polar region", "A = ½ ∫<sub>α</sub><sup>β</sup> r² dθ (θ-interval traces the region once)"]] },
@@ -2019,11 +2153,15 @@ function open(id) {
   if (L.fn && S.fn !== "custom") S.fn = L.fn;
   const fresh = !S.P[L.id], p = P(); if (fresh && L.onOpen) L.onOpen(p, ctx());
   try { history.replaceState(null, "", "#" + L.id); } catch (e) { }
-  setMenu(false); renderNav(); refresh(true);
+  setMenu(false); VISITED.add(L.id); try { localStorage.setItem("mvc-visited", JSON.stringify([...VISITED])); } catch (e) { }
+  renderNav(); refresh(true);
+  const gEl = document.querySelector(".grid"); gEl.classList.remove("enter"); void gEl.offsetWidth; gEl.classList.add("enter");
+  $("v1").classList.remove("touched"); if (!$("v1").hidden && !$("c3d").hidden) v3.intro();
   if (document.querySelector(".lhead").getBoundingClientRect().top < 0) window.scrollTo(0, 0);
 }
 
 // ---- nav ----
+const VISITED = new Set((() => { try { return JSON.parse(localStorage.getItem("mvc-visited") || "[]"); } catch (e) { return []; } })());
 const idx = () => LESSONS.findIndex(l => l.id === S.lesson);
 function renderNav() {
   const L = byId(S.lesson), U = UNITS.find(u => u.n === L.unit), i = idx(), pv = LESSONS[i - 1], nx = LESSONS[i + 1];
@@ -2039,7 +2177,7 @@ function renderOutline() {
   const q = $("find").value.trim().toLowerCase();
   const html = UNITS.map(u => {
     const ls = u.list.filter(l => !q || `${l.n} ${l.title} ${l.sec} ${u.name}`.toLowerCase().includes(q));
-    return ls.length ? `<div class="uh">${u.label} · ${u.name}</div><ol>${ls.map(l => `<li><button data-l="${l.id}"${l.id === S.lesson ? ' aria-current="page"' : ""}><span class="n">${l.n}</span><span>${l.title}</span></button></li>`).join("")}</ol>` : "";
+    return ls.length ? `<div class="uh">${u.label} · ${u.name}</div><ol>${ls.map(l => `<li><button data-l="${l.id}"${VISITED.has(l.id) ? ' class="v"' : ""}${l.id === S.lesson ? ' aria-current="page"' : ""}><span class="n">${l.n}</span><span>${l.title}</span></button></li>`).join("")}</ol>` : "";
   }).join("");
   $("outline").innerHTML = html || `<p class="none">No lesson matches “${esc(q)}”.</p>`;
 }
@@ -2051,11 +2189,26 @@ $("find").addEventListener("input", renderOutline);
 $("find").addEventListener("keydown", e => { if (e.key === "Enter") { const b = $("outline").querySelector("[data-l]"); if (b) { open(b.dataset.l); $("find").value = ""; renderOutline(); } } });
 $("prevTop").addEventListener("click", () => { const l = LESSONS[idx() - 1]; if (l) open(l.id); });
 $("nextTop").addEventListener("click", () => { const l = LESSONS[idx() + 1]; if (l) open(l.id); });
-document.addEventListener("keydown", e => { if (e.target.closest("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return; const l = e.key === "ArrowLeft" ? LESSONS[idx() - 1] : e.key === "ArrowRight" ? LESSONS[idx() + 1] : null; if (l) open(l.id); });
+document.addEventListener("keydown", e => { if (e.target.closest("input, select, textarea, canvas") || e.metaKey || e.ctrlKey || e.altKey) return; const l = e.key === "ArrowLeft" ? LESSONS[idx() - 1] : e.key === "ArrowRight" ? LESSONS[idx() + 1] : null; if (l) open(l.id); });
 $("reset").addEventListener("click", () => { const L = byId(S.lesson); delete S.P[L.id]; open(L.id); });
 
 // ---- controls ----
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+const ICON = { play: '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>', pause: '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>' };
+const pct = (c, v) => ((v - c.min) / ((c.max - c.min) || 1) * 100).toFixed(2);
+const PLAY = { i: -1, raf: 0, dir: 1, v: 0 };
+function stopPlay() { cancelAnimationFrame(PLAY.raf); PLAY.raf = 0; PLAY.i = -1; document.querySelectorAll("#controls .play").forEach(b => { b.setAttribute("aria-pressed", "false"); b.innerHTML = ICON.play; }); }
+function startPlay(i) {
+  stopPlay(); const c = ctlList()[i], btn = document.querySelector(`#controls .play[data-play="${i}"]`); if (!c || !btn) return;
+  PLAY.i = i; PLAY.v = +P()[c.k]; PLAY.dir = PLAY.v >= c.max ? -1 : 1; btn.setAttribute("aria-pressed", "true"); btn.innerHTML = ICON.pause;
+  let t0 = performance.now(); const span = c.max - c.min, dur = 6000;
+  const step = now => {
+    const p = P(), dt = Math.min(50, now - t0); t0 = now; PLAY.v += PLAY.dir * span * dt / dur;
+    if (PLAY.v >= c.max) { PLAY.v = c.max; PLAY.dir = -1; } if (PLAY.v <= c.min) { PLAY.v = c.min; PLAY.dir = 1; }
+    p[c.k] = c.step >= 1 ? Math.round(PLAY.v) : PLAY.v; syncControls(); refresh(false); PLAY.raf = requestAnimationFrame(step);
+  };
+  PLAY.raf = requestAnimationFrame(step);
+}
 const showVal = (c, v) => (c.d === 0 ? String(Math.round(v)).replace("-", "−") : fmt(v, c.d ?? 2)) + (c.u || "");
 function ctlList() { const L = byId(S.lesson); return L.controls ? L.controls(P(), ctx()) : []; }
 function controlsHTML() {
@@ -2064,7 +2217,7 @@ function controlsHTML() {
     if (c.show && !c.show(p)) return "";
     if (c.t === "fn") return `<div class="ctl wide"><label for="fnSel">Function</label><select id="fnSel">${PRESETS.map(q => `<option value="${q.id}" ${q.id === S.fn ? "selected" : ""}>${q.name}${q.tex ? `: z = ${q.tex}` : ""}</option>`).join("")}</select>
       <div ${S.fn === "custom" ? "" : "hidden"}><input type="text" id="custom" value="${esc(S.custom)}" aria-label="Your f(x, y)" placeholder="e.g. x^2 + 3*y^2 - x*y"><div class="err">${S.err}</div></div></div>`;
-    if (c.t === "range") { const v = clamp(+p[c.k], +c.min, +c.max); p[c.k] = v; return `<div class="ctl"><label for="r-${c.k}">${c.label}<b id="r-${c.k}-v">${showVal(c, v)}</b></label><input type="range" id="r-${c.k}" data-k="${c.k}" data-i="${i}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}"></div>`; }
+    if (c.t === "range") { const v = clamp(+p[c.k], +c.min, +c.max); p[c.k] = v; return `<div class="ctl"><div class="lrow"><label for="r-${c.k}">${c.label}</label><span class="lv"><b id="r-${c.k}-v">${showVal(c, v)}</b><button class="play" data-play="${i}" aria-pressed="false" aria-label="Animate ${esc(c.label)}" title="Animate">${ICON.play}</button></span></div><input type="range" id="r-${c.k}" data-k="${c.k}" data-i="${i}" min="${c.min}" max="${c.max}" step="${c.step}" value="${v}" style="--p:${pct(c, v)}%"></div>`; }
     if (c.t === "seg") return `<div class="ctl${c.wide || c.opts.length > 3 ? " wide" : ""}"><span class="lab">${c.label}</span><div class="btns" role="group">${c.opts.map(([v, t]) => `<button class="btn ${String(p[c.k]) === String(v) ? "on" : ""}" data-seg="${c.k}" data-v="${esc(v)}" data-num="${typeof v === "number"}" aria-pressed="${String(p[c.k]) === String(v)}">${t}</button>`).join("")}</div></div>`;
     if (c.t === "acts") return `<div class="ctl wide"><span class="lab">${c.label}</span><div class="btns">${c.acts.map(([v, t]) => `<button class="btn" data-act="${esc(v)}">${t}</button>`).join("")}</div></div>`;
     if (c.t === "text") return `<div class="ctl"><label for="t-${c.k}">${c.label}</label><input type="text" id="t-${c.k}" data-tk="${c.k}" value="${esc(p[c.k])}"></div>`;
@@ -2073,15 +2226,16 @@ function controlsHTML() {
 }
 function syncControls() {
   const p = P(), list = ctlList();
-  document.querySelectorAll("#controls input[type=range]").forEach(el => { const c = list[+el.dataset.i]; if (!c) return; el.value = p[c.k]; const o = $(`r-${c.k}-v`); if (o) o.textContent = showVal(c, +p[c.k]); });
+  document.querySelectorAll("#controls input[type=range]").forEach(el => { const c = list[+el.dataset.i]; if (!c) return; el.value = p[c.k]; el.style.setProperty("--p", pct(c, +p[c.k]) + "%"); const o = $(`r-${c.k}-v`); if (o) o.textContent = showVal(c, +p[c.k]); });
 }
 $("controls").addEventListener("input", e => {
   const el = e.target; if (!el.dataset.k) return;
-  const c = ctlList()[+el.dataset.i], p = P(); p[el.dataset.k] = +el.value; const o = $(`r-${el.dataset.k}-v`); if (o && c) o.textContent = showVal(c, +el.value);
+  const c = ctlList()[+el.dataset.i], p = P(); if (PLAY.i === +el.dataset.i) stopPlay(); p[el.dataset.k] = +el.value; if (c) el.style.setProperty("--p", pct(c, +el.value) + "%"); const o = $(`r-${el.dataset.k}-v`); if (o && c) o.textContent = showVal(c, +el.value);
   refresh(false);
 });
 $("controls").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return; const L = byId(S.lesson), p = P();
+  if (b.dataset.play !== undefined) { if (PLAY.i === +b.dataset.play) stopPlay(); else startPlay(+b.dataset.play); return; }
   if (b.dataset.seg) { const k = b.dataset.seg; p[k] = b.dataset.num === "true" ? +b.dataset.v : b.dataset.v; if (L.onSeg) L.onSeg(p, k, ctx()); refresh(true); }
   else if (b.dataset.act !== undefined && L.act) { L.act(b.dataset.act, p, ctx()); refresh(true); }
 });
@@ -2111,9 +2265,14 @@ $("teach").addEventListener("click", e => { const t = e.target.closest("[data-ac
 const v3 = new View3D($("c3d"));
 const m2 = new Map2D($("c2d"), (x, y) => { const L = byId(S.lesson); if (!L.pick) return; L.pick(x, y, P(), ctx()); syncControls(); refresh(false); });
 const m2b = new Map2D($("c2b"), null);
+$("vtools").addEventListener("click", e => {
+  const b = e.target.closest("button[data-view]"); if (!b) return; const v = b.dataset.view;
+  if (v === "big") { const on = document.body.classList.toggle("wide"); b.setAttribute("aria-pressed", on); b.textContent = on ? "Shrink" : "Enlarge"; requestAnimationFrame(() => { v3.resize(); m2.resize(); if (!$("c2b").hidden) m2b.resize(); }); return; }
+  v3.setView(...VIEWS[v], v === "iso" ? 1 : v3.zoom);
+});
 function refresh(rebuild = true) {
   const L = byId(S.lesson), p = P(), c = ctx();
-  if (rebuild) $("controls").innerHTML = controlsHTML();
+  if (rebuild) { stopPlay(); $("controls").innerHTML = controlsHTML(); }
   $("vis").hidden = !!L.page; document.querySelector(".grid").classList.toggle("pagemode", !!L.page);
   let res;
   try {
@@ -2125,7 +2284,7 @@ function refresh(rebuild = true) {
   $("v1").hidden = !has1; $("v2").hidden = !res.s2;
   $("c3d").hidden = two; $("c2b").hidden = !two;
   $("v1Lbl").textContent = res.v1Lbl || (two ? "Before" : "3D view");
-  $("v1Hint").textContent = two ? "" : "Drag to rotate · scroll to zoom"; $("v1Hint").hidden = two;
+  $("v1Hint").textContent = two ? "" : "Drag to rotate · scroll or pinch to zoom"; $("v1Hint").hidden = two; $("vtools").hidden = two || !res.s3;
   $("v2Lbl").textContent = res.v2Lbl || "Top view";
   const pickable = res.s2 && res.s2.pickable !== false && !!L.pick;
   if (res.s2) res.s2.pickable = pickable;

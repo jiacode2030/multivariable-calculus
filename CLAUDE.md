@@ -18,7 +18,7 @@ Syntax check: extract the `<script>` body and run `node --check` on it.
 - `engine_old.js`: helpers (clamp, fmt, compile = safe f(x,y) parser), function PRESETS, numeric derivatives, critical points, quadric classifier, `View3D` (painter's-algorithm 3D renderer: meshes, quads, lines, points), `heat`, `marching` (level curves).
 - `engine2.js`: `Map2D` (2D view with bounds, heat grid or `shade(x,y)`, polys, levels, curves, arrows, spins, points, texts, pickable), simpson/integrate2, vector helpers, teaching HTML helpers (head, notice, spot, traps, checks, ro, roRow, M), colors C / CRGB.
 - `core.js`: state `S`, `current()` preset, `sample()`, surfaceMesh/surfaceCurve/fnScene, paramMesh, arrow3, polyQuad, boxQuads.
-- `lessons_uN.js`: arrays U1–U4 of lesson objects. Plus `U0` (optional Review: derivatives, integration, area between curves, conic sections, parametric curves, polar; data RD/RI/RA/conic()/PCV/RP) and `UF` (the Key formulas page, data `FORM`).
+- `lessons_uN.js`: arrays U1–U4 of lesson objects. Plus `U0` (optional Review: derivatives, integration, area between curves, conic sections, parametric curves, polar, series; data RD/RI/RA/conic()/PCV/RP/SER) and `UF` (the Key formulas page, data `FORM`).
 - `main.js`: UNITS (each has n, tag, label, name, list; lesson numbers are `tag.i`), sidebar outline + search, hashchange navigation, prev/next pager and ← → keys, Reset, declarative controls, refresh.
 
 ## Lesson object
@@ -31,6 +31,10 @@ Syntax check: extract the `<script>` body and run `node --check` on it.
 ```
 A lesson with `page: true` (the formula sheet) hides the figure panel and renders only `teach`.
 `s3` → 3D canvas; `s2` → right 2D map; `s2b` replaces the 3D canvas with a second 2D map (used by the Jacobian lesson). Null views are hidden.
+
+## UI notes
+View3D: drag with inertia, pinch zoom, arrow/+/- keys, animated presets (VIEWS, setView), a short intro turn on lesson open, axis compass (gizmo). Every range slider has a play button (startPlay/stopPlay) and a filled track (--p). All motion respects prefers-reduced-motion (RM). Visited lessons are remembered in localStorage (per browser only).
+Design guidance: the ui-ux-pro-max skill is installed in `.claude/skills/ui-ux-pro-max` (from github.com/nextlevelbuilder/ui-ux-pro-max-skill, MIT); use its UX rules, not its auto-picked visual style (the repo's light theme and fonts stay).
 
 ## claude.ai copy
 A second copy is published as a claude.ai artifact. Build it with `python3 tools/to_artifact.py OUT.html` (strips the doctype/head/body wrapper the artifact host adds itself). Never edit that copy by hand.
