@@ -9,6 +9,7 @@ head (title, CSS) → markup → one `<script>` with, in order: engine (helpers,
 Syntax check: extract the `<script>` body and run `node --check` on it.
 
 ## Rules
+- Part of Princeton Labs (`jiacode2030/princeton-labs`): keep the sidebar logo and More labs link, and the footer credit, ©, Last updated, and Privacy/Terms links (they point to `/princeton-labs/`). No analytics. Update the Last updated date when content changes.
 - Course-generic: no semester dates, weeks, PSET numbers or exam schedules in the content.
 - No external JS libraries (everything is hand-written canvas). Only Google Fonts.
 - Light theme only, IBM Plex Sans / STIX Two Text / IBM Plex Mono.
