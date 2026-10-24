@@ -14,4 +14,4 @@ An interactive multivariable calculus study site. The lessons follow the order o
 
 Visited lessons are saved only in your browser (`mvc-visited`). Nothing is counted or tracked. See the [Privacy policy](https://jiacode2030.github.io/princeton-labs/privacy.html) and [Terms of use](https://jiacode2030.github.io/princeton-labs/terms.html).
 
-© 2026 JL. All rights reserved.
+© 2026 Jiarui Li. All rights reserved.
